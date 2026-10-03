@@ -47,6 +47,7 @@ local APIS = {
         "C_SpecializationInfo.GetSpecialization", "C_SpecializationInfo.GetSpecializationInfo",
         "C_SpecializationInfo.GetActiveSpecGroup", "C_SpecializationInfo.GetNumSpecializationsForClassID",
         "GetActiveTalentGroup", "GetNumTalentGroups", "C_ClassTalents.GetActiveConfigID",
+        "GetNumTalentTabs", "GetTalentTabInfo", "GetTalentInfo",
     },
     tooltip = {
         "GameTooltip", "GameTooltip.SetOwner", "GameTooltip.SetSpellByID",
@@ -208,6 +209,28 @@ local function probeValues(lines)
     lines[#lines + 1] = ("macros GetNumMacros -> %s"):format(describe(pcall(GetNumMacros)))
 end
 
+-- Talent trees per spec group: needed to translate [spec:<tree name>] into [spec:N].
+local function probeTalentTrees(lines)
+    local specInfo = C_SpecializationInfo and C_SpecializationInfo.GetSpecializationInfo
+    for i = 1, 3 do
+        lines[#lines + 1] = ("talent C_SpecializationInfo.GetSpecializationInfo(%d) -> %s")
+            :format(i, specInfo and describe(pcall(specInfo, i)) or "missing")
+    end
+    if type(GetNumTalentTabs) ~= "function" or type(GetTalentTabInfo) ~= "function" then
+        lines[#lines + 1] = "talent GetNumTalentTabs/GetTalentTabInfo missing"
+        return
+    end
+    local ok, numTabs = pcall(GetNumTalentTabs)
+    lines[#lines + 1] = ("talent GetNumTalentTabs -> %s"):format(describe(ok, numTabs))
+    if not ok or type(numTabs) ~= "number" then return end
+    for group = 1, 2 do
+        for tab = 1, numTabs do
+            lines[#lines + 1] = ("talent group%d tab%d -> %s")
+                :format(group, tab, describe(pcall(GetTalentTabInfo, tab, false, false, group)))
+        end
+    end
+end
+
 local function run()
     if InCombatLockdown() then
         print("|cffff8800ElastibarProbe:|r in combat; will run when combat ends.")
@@ -223,6 +246,7 @@ local function run()
     probeConditionals(lines, missing)
     probeStrata(lines, missing)
     probeValues(lines)
+    probeTalentTrees(lines)
     table.sort(lines)
     table.sort(missing)
 
