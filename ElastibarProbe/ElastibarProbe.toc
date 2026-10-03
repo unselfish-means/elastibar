@@ -1,0 +1,8 @@
+## Interface: 16001
+## Title: Elastibar Probe
+## Notes: Dev-only. Records which APIs, templates, and macro conditionals this client supports.
+## Author: archmagethews
+## Version: 0.1.0
+## SavedVariables: ElastibarProbeDB
+
+ElastibarProbe.lua
