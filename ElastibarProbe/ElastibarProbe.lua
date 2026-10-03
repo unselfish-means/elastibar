@@ -157,20 +157,25 @@ local function probeTemplates(lines, missing)
     end
 end
 
+local function conditionalStatus(cond)
+    local okYes, yes = pcall(SecureCmdOptionParse, ("[%s] y; n"):format(cond))
+    local okNo, no = pcall(SecureCmdOptionParse, ("[no%s] y; n"):format(cond))
+    if not (okYes and okNo) then return "error" end
+    if yes ~= no then return "supported now=" .. tostring(yes) end
+    return "unsupported"
+end
+
 local function probeConditionals(lines, missing)
+    -- Control: a made-up conditional. If it also reads as "supported", the
+    -- [x]/[nox] heuristic can't tell real conditionals from unknown ones here.
+    local control = conditionalStatus("elastibarbogus")
+    local conclusive = not control:find("^supported")
+    lines[#lines + 1] = ("conditional _control %s%s"):format(control, conclusive and "" or " (heuristic inconclusive)")
     for _, cond in ipairs(CONDITIONALS) do
-        local okYes, yes = pcall(SecureCmdOptionParse, ("[%s] y; n"):format(cond))
-        local okNo, no = pcall(SecureCmdOptionParse, ("[no%s] y; n"):format(cond))
-        local status
-        if not (okYes and okNo) then
-            status = "error"
-        elseif yes ~= no then
-            status = "supported now=" .. tostring(yes)
-        else
-            status = "unsupported"
-        end
+        local status = conditionalStatus(cond)
+        if not conclusive then status = status:gsub("^supported", "indeterminate") end
         lines[#lines + 1] = ("conditional %s %s"):format(cond, status)
-        if not status:find("^supported") then
+        if conclusive and not status:find("^supported") then
             missing[#missing + 1] = "conditional " .. cond
         end
     end
