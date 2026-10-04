@@ -17,8 +17,8 @@
     - "Character bar" and "Account bar" buttons to create new bars.
     - Per bar: edit (opens edit mode focused on that bar) and delete.
   - **Open edit mode** button.
-- **Decided**: Per-bar settings (visibility, layer, scale, rename) stay in edit mode's right-click
-  menu rather than being duplicated in the panel.
+- **Decided**: Per-bar settings (visibility, layer, scale, size, rename) stay in Edit Mode's bar settings
+  panel rather than being duplicated in the options panel.
 
 ## Minimap icon
 

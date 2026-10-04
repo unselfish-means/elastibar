@@ -113,6 +113,42 @@ function Bar:SetScaleKeepingCenter(scale)
     self:SavePosition()
 end
 
+-- Re-anchors the bar by its top-left corner without moving it, so resizing grows it
+-- right and down. Offsets are in the bar's own scale, like GetLeft/GetTop.
+function Bar:AnchorTopLeft()
+    local frame = self.frame
+    local left, top = frame:GetLeft(), frame:GetTop()
+    if not (left and top) then return end
+    frame:ClearAllPoints()
+    frame:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", left, top)
+end
+
+-- Moves the bar's top-left corner to (left, top), in UIParent units.
+function Bar:MoveTo(left, top)
+    local scale = self.frame:GetScale()
+    self.frame:ClearAllPoints()
+    self.frame:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", left / scale, top / scale)
+end
+
+-- Sets columns and rows (clamped to 1..12), keeping the top-left corner in place.
+-- Buttons outside the new size are hidden but keep their saved contents.
+-- Returns true if the size changed.
+function Bar:SetGridSize(cols, rows)
+    cols, rows = ns.BarStore.ClampSize(cols), ns.BarStore.ClampSize(rows)
+    local record = self.record
+    if cols == record.cols and rows == record.rows then return false end
+    self:AnchorTopLeft()
+    record.cols, record.rows = cols, rows
+    self:ApplyLayout()
+    self:SavePosition()
+    return true
+end
+
+function Bar:SetLayer(layer)
+    self.record.layer = layer
+    self:ApplyLayer()
+end
+
 -- Translates the rule (spec names to [spec:N]) and hands it to the game.
 -- Returns the translated rule and any problems (unknown or ambiguous spec names).
 function Bar:ApplyVisibility(specInfo)
