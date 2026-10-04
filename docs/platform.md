@@ -31,8 +31,21 @@ toc `16001`):
   - Each node lists its `groupIDs`; summing `ranksPurchased` by group gives points per tree.
 - **Secret values (as in Retail 12.x).** In combat, cooldown APIs return "secret" values that addon
   code can't use: `Cooldown:SetCooldown` fails with "Secret values are only allowed during untainted
-  execution". Custom buttons need the secret-safe path (Retail's is a duration object passed to the
-  cooldown frame). Which APIs Forever offers for this is being probed.
+  execution". The secret-safe path exists on Forever:
+  - `C_Spell.GetSpellCooldownDuration(spellID)` returns a duration object, which goes to
+    `Cooldown:SetCooldownFromDurationObject`. `C_Spell.GetSpellChargeDuration` and
+    `C_ActionBar.Get*Duration` also exist.
+  - There's **no item equivalent** (`C_Item` has no `*Duration` functions). Whether item cooldowns are
+    secret in combat is being checked; the spike logs it.
+  - `issecretvalue`, `C_Secrets.Should*BeSecret`, and `C_DurationUtil.CreateDuration` exist.
+- **`C_Item.IsItemInRange` is protected in combat.** Calling it is a blocked action ("Interface action
+  failed because of an AddOn"), so item range can only be checked out of combat.
+- **Hooking Blizzard Edit Mode doesn't taint**, as far as the spike went: `EventRegistry` callbacks,
+  `hooksecurefunc` on `EditModeManagerFrame`, `ClearSelectedSystem`, and Blizzard's selection overlay
+  on our frame produced no taint across an Edit Mode session, a layout save, and combat.
+- **Taint debugging**: the `taintLog` CVar resets on every reload on this client, and `/console` is
+  broken in the beta's chat code. Set it with `SetCVar("taintLog", "1")` after login; the log is
+  written to `Logs\taint.log`.
 - **Macro conditionals can't be detected statically.** An unknown conditional reads as false, and its
   `no` form as true, so they have to be tested in play.
 
