@@ -19,7 +19,7 @@ Every bar has a scope, shown as a badge on its label in edit mode.
 |---|---|---|
 | Visible on | The character that created it | Every character on the account |
 | Layout (position, size, layer, visibility) | Per character | Shared |
-| Contents | Spells, items, any macro | Items and account macros only |
+| Contents | Spells, items, any macro, pet actions | Items and account macros only |
 
 - **Decided**: Account bars share both layout and contents.
 - **Decided**: Dropping a class spell or a character macro on an account bar is rejected with a short
