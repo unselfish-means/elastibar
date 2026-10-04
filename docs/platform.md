@@ -40,12 +40,19 @@ toc `16001`):
   - `issecretvalue`, `C_Secrets.Should*BeSecret`, and `C_DurationUtil.CreateDuration` exist.
 - **`C_Item.IsItemInRange` is protected in combat.** Calling it is a blocked action ("Interface action
   failed because of an AddOn"), so item range can only be checked out of combat.
-- **Hooking Blizzard Edit Mode doesn't taint**, as far as the spike went: `EventRegistry` callbacks,
-  `hooksecurefunc` on `EditModeManagerFrame`, `ClearSelectedSystem`, and Blizzard's selection overlay
-  on our frame produced no taint across an Edit Mode session, a layout save, and combat.
-- **Taint debugging**: the `taintLog` CVar resets on every reload on this client, and `/console` is
-  broken in the beta's chat code. Set it with `SetCVar("taintLog", "1")` after login; the log is
-  written to `Logs\taint.log`.
+- **Hooking Blizzard Edit Mode doesn't taint**: `EventRegistry` callbacks, `hooksecurefunc` on
+  `EditModeManagerFrame`, `ClearSelectedSystem`, and Blizzard's selection overlay on our frame produced
+  no taint and no errors across an Edit Mode session, a layout save, and combat.
+- **Taint debugging**:
+  - The `taintLog` CVar resets on every reload on this client.
+  - `/console` is broken in the beta's chat code. Set the CVar with `SetCVar("taintLog", "1")` after
+    login (`/eb taintlog` in the spike); the log is written to `Logs\taint.log`.
+  - **While `taintLog` is on, this beta throws unrelated Blizzard errors**: chat errors on XP
+    messages, and possibly the Edit Mode `LootFrame` error on exit. Turn it on only while hunting
+    taint.
+- **Other addons can look like Elastibar problems.** On this beta, MoveAny caused `BuffFrame` errors
+  (on combat and on closing Edit Mode) through secret-value taint, and Details_RaidCheck errors on a
+  missing library. Check `Logs\taint.log` for which addon is named before chasing an error.
 - **Macro conditionals can't be detected statically.** An unknown conditional reads as false, and its
   `no` form as true, so they have to be tested in play.
 
