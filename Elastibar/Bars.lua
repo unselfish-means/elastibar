@@ -131,6 +131,11 @@ ns.On("UPDATE_MACROS", function()
     end)
 end)
 
+-- Hidden empty slots reappear while something is on the cursor, so it can be dropped there.
+ns.On("CURSOR_CHANGED", function()
+    for _, bar in pairs(live) do bar:ApplyEmptySlots() end
+end)
+
 -- Switching Edit Mode layouts moves bars to that layout's saved positions.
 ns.On("EDIT_MODE_LAYOUTS_UPDATED", function()
     if not loaded then return end

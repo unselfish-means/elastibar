@@ -59,6 +59,7 @@ function Bar:ApplyLayout()
             if not button then
                 button = ns.Button.Create(self.frame, function(_, content)
                     if self.record then self.record.buttons[key] = content end
+                    self:ApplyEmptySlots()
                 end)
                 self.buttons[key] = button
             end
@@ -74,6 +75,24 @@ function Bar:ApplyLayout()
             button.widget:Hide()
         end
     end
+    self:ApplyEmptySlots()
+end
+
+-- "Hide empty slots" (per bar): empty buttons become invisible. Alpha isn't protected,
+-- unlike Show/Hide on secure buttons, so this also works in combat, and invisible buttons
+-- still accept drops. They reappear while something is on the cursor or Edit Mode is open.
+function Bar:ApplyEmptySlots()
+    if not self.record then return end
+    local revealed = not self.record.hideEmpty or GetCursorInfo() ~= nil
+        or (ns.EditMode and ns.EditMode.IsActive())
+    for _, button in pairs(self.buttons) do
+        button.widget:SetAlpha((button.content or revealed) and 1 or 0)
+    end
+end
+
+function Bar:SetHideEmpty(hide)
+    self.record.hideEmpty = hide
+    self:ApplyEmptySlots()
 end
 
 function Bar:ApplyScale()
@@ -111,6 +130,42 @@ function Bar:SetScaleKeepingCenter(scale)
     frame:ClearAllPoints()
     frame:SetPoint("CENTER", UIParent, "BOTTOMLEFT", screenX / effective, screenY / effective)
     self:SavePosition()
+end
+
+-- Re-anchors the bar by its top-left corner without moving it, so resizing grows it
+-- right and down. Offsets are in the bar's own scale, like GetLeft/GetTop.
+function Bar:AnchorTopLeft()
+    local frame = self.frame
+    local left, top = frame:GetLeft(), frame:GetTop()
+    if not (left and top) then return end
+    frame:ClearAllPoints()
+    frame:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", left, top)
+end
+
+-- Moves the bar's top-left corner to (left, top), in UIParent units.
+function Bar:MoveTo(left, top)
+    local scale = self.frame:GetScale()
+    self.frame:ClearAllPoints()
+    self.frame:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", left / scale, top / scale)
+end
+
+-- Sets columns and rows (clamped to 1..12), keeping the top-left corner in place.
+-- Buttons outside the new size are hidden but keep their saved contents.
+-- Returns true if the size changed.
+function Bar:SetGridSize(cols, rows)
+    cols, rows = ns.BarStore.ClampSize(cols), ns.BarStore.ClampSize(rows)
+    local record = self.record
+    if cols == record.cols and rows == record.rows then return false end
+    self:AnchorTopLeft()
+    record.cols, record.rows = cols, rows
+    self:ApplyLayout()
+    self:SavePosition()
+    return true
+end
+
+function Bar:SetLayer(layer)
+    self.record.layer = layer
+    self:ApplyLayer()
 end
 
 -- Translates the rule (spec names to [spec:N]) and hands it to the game.
