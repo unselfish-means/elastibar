@@ -16,8 +16,7 @@ toc `16001`):
 - **Blizzard Edit Mode exists**: `EditModeManagerFrame` and `C_EditMode`.
 - **Spell overlay glow** uses `ActionButtonSpellAlertManager`; `ActionButton_ShowOverlayGlow` is gone.
 - **Macros**: `MAX_ACCOUNT_MACROS` is nil at login (it's defined by the load-on-demand macro UI).
-  The assumption is that account macros are indexes 1–120 and character macros are 121 and up.
-  The spike prints this when you drop a macro, to confirm it.
+  Account macros are indexes 1–120 and character macros are 121 and up; the spike confirmed this.
 - **Specs**: `C_SpecializationInfo.GetSpecializationInfo(1)` returns the *class* ("Hunter", ID 1485),
   not a talent tree. `GetTalentTabInfo` is gone. Talent trees come from the trait system:
   - `C_SpecializationInfo.GetCombatConfigIDForSpecGroup(n)` gives the talent config for spec `n`
