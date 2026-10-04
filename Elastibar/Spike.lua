@@ -182,6 +182,7 @@ SlashCmdList.ELASTIBAR = function(msg)
     elseif cmd == "taintlog" then
         -- /console is broken in this beta's chat code, so set the CVar directly.
         local value = rest:lower() == "off" and "0" or "1"
+        ns.db.taintLog = value == "1" -- re-applied at each login; see EditModeSpike.lua
         local ok, err = pcall(SetCVar, "taintLog", value)
         ns.Print("taintLog set to %s: %s", value, ok and tostring(GetCVar("taintLog")) or tostring(err))
     elseif cmd == "reset" then
