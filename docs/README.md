@@ -39,6 +39,6 @@ Each requirement is tagged:
 - **Changing a bar's scope** (character ↔ account) after it's created.
 - **Formatted custom macro tooltips**: plain text is proposed for v1.
 - **Class spells and character macros on account bars**: rejected on drop for now.
-- **Flyouts, pet buttons, stance buttons.**
+- **Flyouts and stance buttons.** (Pet actions were added to v1.)
 - **Masque skinning.**
 - **Bar templates and profiles**: v1 has character and account bars only.
