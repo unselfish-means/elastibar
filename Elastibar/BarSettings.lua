@@ -110,6 +110,11 @@ local function build()
     panel:SetFrameStrata("DIALOG")
     panel:SetClampedToScreen(true)
     panel:EnableMouse(true)
+    -- Movable, like Blizzard's Edit Mode settings panel.
+    panel:SetMovable(true)
+    panel:RegisterForDrag("LeftButton")
+    panel:SetScript("OnDragStart", panel.StartMoving)
+    panel:SetScript("OnDragStop", panel.StopMovingOrSizing)
     panel:SetBackdrop({
         bgFile = "Interface\\Buttons\\WHITE8x8",
         edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
@@ -177,11 +182,17 @@ function BarSettings.Refresh(bar)
     refreshing = false
 end
 
+-- Opens next to the bar at a fixed screen position. It must not stay anchored to the bar:
+-- the sliders resize and rescale the bar, which would move the panel under the cursor and
+-- make the slider jump.
 function BarSettings.Open(bar)
     if not panel then build() end
+    if current == bar and panel:IsShown() then return end -- keep it where it is (or was dragged)
     current = bar
+    local frame = bar.frame
+    local ratio = frame:GetEffectiveScale() / UIParent:GetEffectiveScale()
     panel:ClearAllPoints()
-    panel:SetPoint("BOTTOMLEFT", bar.frame, "TOPRIGHT", 8, 8)
+    panel:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", frame:GetRight() * ratio + 8, frame:GetTop() * ratio + 8)
     BarSettings.Refresh(bar)
     panel:Show()
 end
