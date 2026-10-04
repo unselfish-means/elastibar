@@ -183,8 +183,10 @@ local function onExit()
     if not editModeActive then return end
     editModeActive = false
     ns.Log("Edit Mode closed")
-    if selection then selection:Hide() end
+    -- closeDialog resets the highlight, and Blizzard's ShowHighlighted also shows the
+    -- overlay, so hide the overlay last.
     closeDialog()
+    if selection then selection:Hide() end
     if spike then spike.handle:Show() end
 end
 
@@ -242,10 +244,44 @@ function ns.EditModeDiagnostics()
     ns.Print("  taintLog CVar: %s", tostring(GetCVar and GetCVar("taintLog")))
 end
 
+-- Secret values: which cooldown APIs avoid "secret values are only allowed during
+-- untainted execution" in combat? List anything duration- or secret-related.
+local function secretDiagnostics()
+    ns.Print("Secret value diagnostics")
+    ns.Print("  issecretvalue: %s", type(issecretvalue))
+    for _, nsName in ipairs({ "C_Spell", "C_Item", "C_Container", "C_DurationUtil", "C_ActionBar", "C_Secrets" }) do
+        local tbl = _G[nsName]
+        if type(tbl) == "table" then
+            local found = {}
+            for key in pairs(tbl) do
+                if key:find("Duration") or key:find("Secret") then found[#found + 1] = key end
+            end
+            table.sort(found)
+            ns.Print("  %s: %s", nsName, #found > 0 and table.concat(found, ", ") or "(none)")
+        else
+            ns.Print("  %s: missing", nsName)
+        end
+    end
+    local cooldown = CreateFrame("Cooldown", nil, UIParent, "CooldownFrameTemplate")
+    local methods, index = {}, getmetatable(cooldown).__index
+    for key in pairs(type(index) == "table" and index or {}) do
+        if key:find("Duration") or key:find("Secret") then methods[#methods + 1] = key end
+    end
+    table.sort(methods)
+    ns.Print("  Cooldown methods: %s", #methods > 0 and table.concat(methods, ", ") or "(none)")
+    cooldown:Hide()
+end
+
 -- Record diagnostics once per session so they can be read without copying chat.
+-- During the spike, turn the taintLog CVar on at every login (this client resets it on
+-- reload) unless /eb taintlog off was used.
 ns.On("PLAYER_ENTERING_WORLD", function()
     if ns.db and not ns.diagnosticsLogged then
         ns.diagnosticsLogged = true
-        C_Timer.After(2, ns.EditModeDiagnostics)
+        if ns.db.taintLog ~= false then pcall(SetCVar, "taintLog", "1") end
+        C_Timer.After(2, function()
+            ns.EditModeDiagnostics()
+            secretDiagnostics()
+        end)
     end
 end)
