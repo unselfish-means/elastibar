@@ -2,13 +2,16 @@
 ## Title: Elastibar
 ## Notes: Extra action bars you can stretch, place, and show on your own rules.
 ## Author: archmagethews
-## Version: 0.0.1-spike
+## Version: 0.1.0-dev
 ## SavedVariables: ElastibarDB
 ## SavedVariablesPerCharacter: ElastibarCharDB
 
 Core.lua
 Conditionals.lua
 SpecTrees.lua
+BarStore.lua
 Button.lua
-EditModeSpike.lua
-Spike.lua
+Bar.lua
+EditMode.lua
+Bars.lua
+Slash.lua

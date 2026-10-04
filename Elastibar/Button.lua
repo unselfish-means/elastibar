@@ -10,14 +10,12 @@ local Button = {}
 Button.__index = Button
 ns.Button = Button
 
-local MAX_ACCOUNT_MACROS_FALLBACK = 120 -- MAX_ACCOUNT_MACROS is nil until the macro UI loads
-
 -- Drop the mouse-down half of each click so a mouse click fires once, on release.
 -- (Registering both halves matches what Button Forge does on this client; key-down
 -- handling for keybinds comes later.)
 local clickWrapper = CreateFrame("Frame", nil, nil, "SecureHandlerBaseTemplate")
 
--- Report each kind of update error once, so the spike surfaces API surprises without spamming.
+-- Report each kind of update error once, so API surprises surface without spamming.
 local reported = {}
 local function guard(tag, fn, ...)
     local ok, err = pcall(fn, ...)
@@ -45,9 +43,15 @@ function Button.Create(parent, onContentChanged)
         onContentChanged = onContentChanged,
     }, Button)
 
+    -- With pressAndHoldAction, the press runs "type" and the release runs "typerelease".
+    -- The wrapper drops presses, so mouse clicks act on release via "typerelease".
+    -- (Same setup as Button Forge on this client.)
+    widget:SetAttribute("pressAndHoldAction", true)
     widget:RegisterForClicks("AnyUp", "AnyDown")
     widget:RegisterForDrag("LeftButton")
     clickWrapper:WrapScript(widget, "OnClick", [[ if down then return false end ]])
+    -- CheckButtons toggle their checked glow on click; show "is this active" instead.
+    widget:SetScript("PostClick", function() self:UpdateChecked() end)
     if self.hotkey then self.hotkey:SetText("") end
 
     widget:SetScript("OnReceiveDrag", function() self:ReceiveCursor() end)
@@ -81,10 +85,6 @@ function Button:ReceiveCursor()
         return
     end
     ClearCursor()
-    if content.kind == "macro" then
-        local scope = detail <= (MAX_ACCOUNT_MACROS or MAX_ACCOUNT_MACROS_FALLBACK) and "account" or "character"
-        ns.Print("Macro '%s' is a %s macro (index %d).", content.name, scope, detail)
-    end
     self:SetContent(content)
     if self.onContentChanged then self.onContentChanged(self, content) end
 end
@@ -93,20 +93,24 @@ end
 function Button:SetContent(content)
     self.content = content
     local w = self.widget
-    w:SetAttribute("type", nil)
+    local function setType(kind)
+        w:SetAttribute("type", kind)
+        w:SetAttribute("typerelease", kind)
+    end
+    setType(nil)
     w:SetAttribute("spell", nil)
     w:SetAttribute("item", nil)
     w:SetAttribute("macro", nil)
     if content and content.kind == "spell" then
-        w:SetAttribute("type", "spell")
+        setType("spell")
         w:SetAttribute("spell", content.id)
     elseif content and content.kind == "item" then
-        w:SetAttribute("type", "item")
+        setType("item")
         w:SetAttribute("item", "item:" .. content.id)
     elseif content and content.kind == "macro" then
         local index = GetMacroIndexByName(content.name)
         if index and index > 0 then
-            w:SetAttribute("type", "macro")
+            setType("macro")
             w:SetAttribute("macro", index)
         end
     end
@@ -202,7 +206,14 @@ function Button:UpdateUsable()
     end
 end
 
+function Button:UpdateChecked()
+    local spellID = self:DisplaySpell()
+    local active = spellID and (C_Spell.IsCurrentSpell(spellID) or C_Spell.IsAutoRepeatSpell(spellID))
+    self.widget:SetChecked(active and true or false)
+end
+
 function Button:Update()
+    guard("checked", self.UpdateChecked, self)
     guard("icon", self.UpdateIcon, self)
     guard("cooldown", self.UpdateCooldown, self)
     guard("count", self.UpdateCount, self)

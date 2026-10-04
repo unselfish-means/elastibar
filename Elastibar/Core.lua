@@ -66,5 +66,11 @@ ns.On("ADDON_LOADED", function(_, loaded)
     ElastibarDB = ElastibarDB or {}
     ElastibarCharDB = ElastibarCharDB or {}
     ns.db, ns.charDB = ElastibarDB, ElastibarCharDB
-    if ns.OnLoaded then ns.OnLoaded() end
 end)
+
+-- Record blocked actions in the log; the taint log (/eb taintlog) shows the cause.
+local function onBlocked(event, addon, func)
+    if addon == ADDON then ns.Print("|cffff4040%s|r function=%s", event, tostring(func)) end
+end
+ns.On("ADDON_ACTION_BLOCKED", onBlocked)
+ns.On("ADDON_ACTION_FORBIDDEN", onBlocked)
