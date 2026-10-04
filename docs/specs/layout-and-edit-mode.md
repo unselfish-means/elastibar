@@ -54,8 +54,13 @@ All eight stratas work on Forever, with frame levels up to 10000 (see [Platform]
 - **Decided**: Hook into Blizzard's own Edit Mode (`EditModeManagerFrame` exists on Forever) if
   possible. Opening Edit Mode would then also unlock Elastibar bars, with Elastibar's settings
   alongside Blizzard's.
-  - Blizzard doesn't officially support addon frames in Edit Mode. On Retail, the community library
-    LibEditMode does this. Next step: check whether it, or the same approach, works on Forever.
-  - If it doesn't, Elastibar has its own edit mode with the same look and behavior.
+  - **Confirmed feasible** (Edit Mode spike, 2026-10-04): with no taint and no errors, Elastibar can
+    - detect Edit Mode opening and closing;
+    - show Blizzard's selection overlay on its bars, with a name tooltip on hover;
+    - select a bar (deselecting Blizzard's frame) and drag it;
+    - open its own settings panel.
+  - Blizzard doesn't officially support addon frames in Edit Mode, so this relies on the same hooks
+    the community library LibEditMode uses on Retail. Elastibar uses its own small hook rather than
+    vendoring the library.
 - **Proposed**: Bar positions are saved per Blizzard Edit Mode layout, like Blizzard's own frames.
   Switching between layouts is not a priority to test, since a single layout is the common case.
