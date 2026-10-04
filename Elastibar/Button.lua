@@ -55,6 +55,10 @@ function Button.Create(parent, onContentChanged)
     if self.hotkey then self.hotkey:SetText("") end
 
     widget:SetScript("OnReceiveDrag", function() self:ReceiveCursor() end)
+    -- Shift-drag picks the contents up off the button (decided in docs/specs/buttons.md).
+    widget:SetScript("OnDragStart", function()
+        if IsShiftKeyDown() then self:PickUp() end
+    end)
     widget:SetScript("OnEnter", function() self:ShowTooltip() end)
     widget:SetScript("OnLeave", function() GameTooltip:Hide() end)
     return self
@@ -146,6 +150,23 @@ local function contentFromCursor()
     return nil, kind
 end
 
+-- Puts saved contents on the game cursor. If the client can't pick it up, the cursor stays
+-- empty, which still clears it from the button as intended.
+local function putOnCursor(content)
+    local ok = true
+    if content.kind == "spell" then
+        ok = pcall(C_Spell.PickupSpell, content.id)
+    elseif content.kind == "item" then
+        ok = pcall(C_Item.PickupItem or PickupItem, content.id)
+    elseif content.kind == "macro" then
+        local index = GetMacroIndexByName(content.name)
+        if index and index > 0 then ok = pcall(PickupMacro, index) end
+    elseif content.kind == "petaction" then
+        ok = pcall(PickupPetAction, content.slot) -- the pickup hook records the slot for the drop
+    end
+    if not ok then ns.Log("couldn't put " .. content.kind .. " on the cursor") end
+end
+
 function Button:ReceiveCursor()
     if InCombatLockdown() then
         ns.Print("Can't change buttons in combat.")
@@ -161,8 +182,25 @@ function Button:ReceiveCursor()
         return
     end
     ClearCursor()
+    local previous = self.content
     self:SetContent(content)
     if self.onContentChanged then self.onContentChanged(self, content) end
+    -- Swap, like Blizzard's bars: what was here goes onto the cursor instead of being lost.
+    if previous then putOnCursor(previous) end
+end
+
+-- Shift-drag: put the contents on the cursor and empty the button. Dropping them on another
+-- Elastibar button moves them, on a Blizzard bar places them there, anywhere else clears them.
+function Button:PickUp()
+    if not self.content then return end
+    if InCombatLockdown() then
+        ns.Print("Can't change buttons in combat.")
+        return
+    end
+    local content = self.content
+    self:SetContent(nil)
+    if self.onContentChanged then self.onContentChanged(self, nil) end
+    putOnCursor(content)
 end
 
 -- Must run out of combat: it changes secure attributes.
