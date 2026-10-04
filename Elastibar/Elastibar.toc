@@ -1,0 +1,14 @@
+## Interface: 16001
+## Title: Elastibar
+## Notes: Extra action bars you can stretch, place, and show on your own rules.
+## Author: archmagethews
+## Version: 0.0.1-spike
+## SavedVariables: ElastibarDB
+## SavedVariablesPerCharacter: ElastibarCharDB
+
+Core.lua
+Conditionals.lua
+SpecTrees.lua
+Button.lua
+EditModeSpike.lua
+Spike.lua
