@@ -11,9 +11,14 @@ Each button holds one spell, item, or macro.
 - **Proposed**: Macros are stored by name, not by index, because macro indexes shift when macros
   are added or deleted. If a macro is deleted, its button shows as empty but remembers the name, so
   recreating the macro restores it.
-- **Open**: How do you remove something from a button? Options: drag it off (like Blizzard's bars),
-  Shift-drag, or a right-click menu in edit mode.
-- **Open**: Do mounts, toys, pets, and equipment sets count as items in v1?
+- **Decided**: **Shift-drag** picks up what a button holds, which empties the button. Then:
+  - dropping it on another Elastibar button moves it there;
+  - dropping it on a Blizzard action bar places it there (the game handles this);
+  - dropping it anywhere else deletes it.
+- **Proposed**: Dropping onto a button that already holds something swaps the two, as Blizzard's
+  bars do.
+- **Decided**: Mounts, toys, and pets count as items: they can go on any bar, including account bars.
+- **Open**: Equipment sets weren't discussed.
 
 ## What a button shows
 
@@ -26,7 +31,9 @@ Each button holds one spell, item, or macro.
 
 - **Decided**: Hovering a spell or item shows its normal game tooltip.
 - **Decided**: Macros can have a **custom tooltip** that you write. Button Forge doesn't offer this.
+  Formatting and storage can wait until the next version if they're hard.
+- **Proposed**: Keep **plain-text** custom tooltips in v1, stored per macro so the text follows the
+  macro to any bar. This is cheap: a text field and a few lines in the hover handler. Formatting
+  (title line, colors) moves to the next version.
 - **Proposed**: A macro with no custom tooltip shows the tooltip of the spell or item it would
   currently use (as `#showtooltip` does), falling back to the macro's name.
-- **Open**: Is a custom tooltip plain text, or does it support colors and a title line? Is it stored
-  per macro (it follows the macro to any bar) or per button?

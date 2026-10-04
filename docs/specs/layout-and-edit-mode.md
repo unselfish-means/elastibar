@@ -15,7 +15,9 @@ Outside edit mode, bars are just buttons.
 - **Proposed**: A soft cap of 12×12 for performance, which can be raised if it turns out not to matter.
 - **Proposed**: Shrinking a bar over buttons that hold something keeps their contents, so growing it
   back restores them.
-- **Open**: Is button size (scale) a separate setting, or fixed?
+- **Decided**: Each bar has a scale setting that matches the scale options Blizzard's own action
+  bars offer. On Retail this is Edit Mode's "Icon Size", 50% to 200% in 10% steps. Check what
+  Forever's Edit Mode offers and copy it.
 
 ## Moving
 
@@ -49,5 +51,9 @@ All eight stratas work on Forever, with frame levels up to 10000 (see [Platform]
   - Rename
   - Delete bar
 - **Decided**: Edit mode is locked in combat; the menu shows why.
-- **Open**: Should Elastibar's edit mode match Blizzard's own Edit Mode, which exists on Forever
-  (`EditModeManagerFrame`), or hook into it?
+- **Decided**: Hook into Blizzard's own Edit Mode (`EditModeManagerFrame` exists on Forever) if
+  possible. Opening Edit Mode would then also unlock Elastibar bars, with Elastibar's settings
+  alongside Blizzard's.
+  - Blizzard doesn't officially support addon frames in Edit Mode. On Retail, the community library
+    LibEditMode does this. Next step: check whether it, or the same approach, works on Forever.
+  - If it doesn't, Elastibar has its own edit mode with the same look and behavior.
