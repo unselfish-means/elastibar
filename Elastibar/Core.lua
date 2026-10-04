@@ -4,8 +4,22 @@ local ADDON, ns = ...
 
 ns.name = ADDON
 
+-- Everything printed is also kept in ElastibarDB.log (last 300 lines) so it can be read
+-- from SavedVariables after a /reload.
+local LOG_LIMIT = 300
+
+function ns.Log(text)
+    if not ns.db then return end
+    ns.db.log = ns.db.log or {}
+    local log = ns.db.log
+    log[#log + 1] = date("%m-%d %H:%M:%S") .. (InCombatLockdown() and " [combat] " or " ") .. text:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
+    while #log > LOG_LIMIT do table.remove(log, 1) end
+end
+
 function ns.Print(fmt, ...)
-    print(("|cff33ccffElastibar:|r " .. fmt):format(...))
+    local text = fmt:format(...)
+    print("|cff33ccffElastibar:|r " .. text)
+    ns.Log(text)
 end
 
 -- Event dispatch. Unknown events are skipped instead of erroring, since this
