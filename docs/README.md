@@ -14,13 +14,13 @@ custom bars but:
 - looks dated next to modern addons such as QuestMaster.
 
 Elastibar is not a Button Forge clone. Its differentiators are the **visibility editor**, **modern
-visuals**, **custom macro tooltips**, and **account-wide bars with templates**.
+visuals**, **custom macro tooltips**, and **account-wide bars**.
 
 ## Specs
 
 | Spec | Covers |
 |---|---|
-| [Bars](specs/bars.md) | Creating, deleting, character vs account bars, templates |
+| [Bars](specs/bars.md) | Creating, deleting, character vs account bars |
 | [Layout and edit mode](specs/layout-and-edit-mode.md) | Edge-drag resize, moving, grid snapping, layers, labels, right-click menu |
 | [Buttons](specs/buttons.md) | Spells, items, macros; tooltips; custom macro tooltips |
 | [Visibility](specs/visibility.md) | Visibility rules, presets, spec names, the rule editor |
@@ -40,4 +40,4 @@ Each requirement is tagged:
 - **Class spells and character macros on account bars**: rejected on drop for now.
 - **Flyouts, pet buttons, stance buttons.**
 - **Masque skinning.**
-- **Profiles beyond bar templates.**
+- **Bar templates and profiles**: v1 has character and account bars only.

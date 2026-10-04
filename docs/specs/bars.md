@@ -28,16 +28,9 @@ Every bar has a scope, shown as a badge on its label in edit mode.
   macros. A Mage's Frostbolt makes no sense on a Warrior.
 - **Decided**: A bar's scope is set when it's created. Changing scope afterwards is not in v1.
 
-## Templates
+## Templates (not in v1)
 
-- **Decided**: You can save a bar's layout and contents as a template, then add it to other characters.
-- **Decided**: Templates are **live links**. Editing a linked bar on any character updates the
-  template and every bar linked to it.
-- **Open**: Which properties follow the link? Contents and size probably should. Position and
-  visibility rule may need to differ per character (a healer and a DPS character might put the same
-  bar in different places).
-- **Open**: How does a linked bar differ from an account bar? Both share layout and contents across
-  characters. The difference is that a linked bar is added to chosen characters and may hold class
-  spells (for example, one template for all your Hunters), while an account bar appears on every
-  character and holds only items and account macros. Is that the intended split, or should the two
-  concepts merge?
+- **Decided**: v1 has only character bars and account bars. Templates are a possible future feature.
+- **Why**: Live-linked templates overlapped with account bars, since both share a bar across
+  characters, and raised unresolved questions (which properties follow the link, and whether the two
+  concepts should merge). Revisit them if character and account bars turn out not to be enough.

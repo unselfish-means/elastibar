@@ -15,7 +15,7 @@ Outside edit mode, bars are just buttons.
 - **Proposed**: A soft cap of 12×12 for performance, which can be raised if it turns out not to matter.
 - **Proposed**: Shrinking a bar over buttons that hold something keeps their contents, so growing it
   back restores them.
-- **Decided**: Each bar has a scale setting that matches the scale options Blizzard's own action
+- **Decided**: Scale is set **per bar**. Its options match the scale options Blizzard's own action
   bars offer. On Retail this is Edit Mode's "Icon Size", 50% to 200% in 10% steps. Check what
   Forever's Edit Mode offers and copy it.
 
@@ -47,7 +47,7 @@ All eight stratas work on Forever, with frame levels up to 10000 (see [Platform]
   - Scope
   - Visibility (opens the [rule editor](visibility.md#the-rule-editor))
   - Layer
-  - Save as template
+  - Scale
   - Rename
   - Delete bar
 - **Decided**: Edit mode is locked in combat; the menu shows why.
