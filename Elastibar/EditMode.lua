@@ -222,6 +222,7 @@ local function onEnter()
     for bar in pairs(attached) do
         bar.overlay:Show()
         setHighlight(bar, false)
+        bar:ApplyEmptySlots() -- hidden empty slots show while editing
     end
 end
 
@@ -231,7 +232,10 @@ local function onExit()
     stopDrag()
     deselect()
     -- Blizzard's ShowHighlighted also shows the overlay, so hide overlays after deselecting.
-    for bar in pairs(attached) do bar.overlay:Hide() end
+    for bar in pairs(attached) do
+        bar.overlay:Hide()
+        bar:ApplyEmptySlots()
+    end
 end
 
 local function hook()
