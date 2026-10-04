@@ -24,6 +24,7 @@ visuals**, **custom macro tooltips**, and **account-wide bars**.
 | [Layout and edit mode](specs/layout-and-edit-mode.md) | Edge-drag resize, moving, grid snapping, layers, labels, right-click menu |
 | [Buttons](specs/buttons.md) | Spells, items, macros; tooltips; custom macro tooltips |
 | [Visibility](specs/visibility.md) | Visibility rules, presets, spec names, the rule editor |
+| [Options and minimap](specs/options-and-minimap.md) | Options panel, minimap icon |
 | [Platform](platform.md) | WoW: Forever API facts, combat lockdown, dev workflow |
 
 Each requirement is tagged:
