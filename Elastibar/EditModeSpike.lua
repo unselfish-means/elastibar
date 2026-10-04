@@ -140,7 +140,14 @@ local function buildSelection()
     selection:SetFrameLevel(spike.bar:GetFrameLevel() + 20)
     selection:EnableMouse(true)
     selection:RegisterForDrag("LeftButton")
-    -- Replace Blizzard's scripts: they expect a Blizzard Edit Mode system as the parent.
+    -- Replace Blizzard's scripts: they expect a Blizzard Edit Mode system (self.system), and
+    -- error on hover without one.
+    selection:SetScript("OnEnter", function(self)
+        if self.MouseOverHighlight then self.MouseOverHighlight:Show() end
+    end)
+    selection:SetScript("OnLeave", function(self)
+        if self.MouseOverHighlight then self.MouseOverHighlight:Hide() end
+    end)
     selection:SetScript("OnMouseDown", selectBar)
     selection:SetScript("OnDragStart", function()
         if InCombatLockdown() then return end

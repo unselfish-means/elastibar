@@ -57,3 +57,5 @@ All eight stratas work on Forever, with frame levels up to 10000 (see [Platform]
   - Blizzard doesn't officially support addon frames in Edit Mode. On Retail, the community library
     LibEditMode does this. Next step: check whether it, or the same approach, works on Forever.
   - If it doesn't, Elastibar has its own edit mode with the same look and behavior.
+- **Proposed**: Bar positions are saved per Blizzard Edit Mode layout, like Blizzard's own frames.
+  Switching between layouts is not a priority to test, since a single layout is the common case.

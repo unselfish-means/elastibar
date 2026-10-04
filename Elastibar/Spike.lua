@@ -10,7 +10,8 @@
 
 local _, ns = ...
 
-local SIZE, GAP, COLS, ROWS = 36, 4, 2, 2
+-- ActionButtonTemplate is natively 45px on this client (Button Forge uses 45 with a 2px gap).
+local SIZE, GAP, COLS, ROWS = 45, 2, 2, 2
 
 local bar, buttons = nil, {}
 
