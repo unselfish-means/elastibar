@@ -76,25 +76,41 @@ local function petInfo(slot)
     }
 end
 
--- The pet bar calls PickupPetAction(slot) when you drag from it; watching that call
--- (hooksecurefunc is taint-safe) gives the exact slot, whatever the cursor reports.
-local pickedPetSlot
-hooksecurefunc("PickupPetAction", function(slot) pickedPetSlot = slot end)
+-- What was last picked up, from the pet bar or the spellbook. The cursor's own values for
+-- a pet action are spellbook positions on this client, not pet bar slots, so watch the
+-- pickup calls instead (hooksecurefunc is taint-safe):
+--   - the pet bar calls PickupPetAction(slot)
+--   - the spellbook calls C_SpellBook.PickupSpellBookItem(index, bank)
+local picked
+hooksecurefunc("PickupPetAction", function(slot) picked = { slot = slot } end)
+if C_SpellBook and C_SpellBook.PickupSpellBookItem then
+    hooksecurefunc(C_SpellBook, "PickupSpellBookItem", function(index, bank)
+        local ok, info = pcall(C_SpellBook.GetSpellBookItemInfo, index, bank)
+        picked = ok and type(info) == "table" and { spellID = info.spellID, name = info.name } or nil
+    end)
+end
 
--- The cursor's values for a pet action aren't just the slot on this client. Use the
--- picked-up slot if known; otherwise find the slot whose spell matches a cursor value,
--- falling back to a value that looks like a slot.
+-- The pet bar slot for a pet action on the cursor: the picked-up pet bar slot, else the
+-- slot holding the picked-up spellbook entry (by spell ID, or by name for commands such
+-- as Attack), else a slot whose spell matches a cursor value. Never guess from a small
+-- cursor value: those are spellbook positions, which put the wrong action on the button.
 local function petSlotFromCursor(...)
-    if pickedPetSlot then return pickedPetSlot end
-    local values, slots = { ... }, NUM_PET_ACTION_SLOTS or 10
+    local slots = NUM_PET_ACTION_SLOTS or 10
+    if picked and picked.slot then return picked.slot end
+    if picked then
+        for slot = 1, slots do
+            local info = petInfo(slot)
+            if info and ((picked.spellID and info.spellID == picked.spellID) or (picked.name and info.name == picked.name)) then
+                return slot
+            end
+        end
+    end
+    local values = { ... }
     for slot = 1, slots do
         local info = petInfo(slot)
         for _, value in ipairs(values) do
             if info and info.spellID and value == info.spellID then return slot end
         end
-    end
-    for _, value in ipairs(values) do
-        if type(value) == "number" and value >= 1 and value <= slots then return value end
     end
 end
 
@@ -118,10 +134,11 @@ local function contentFromCursor()
         return name and { kind = "macro", name = name }, a
     elseif kind == "petaction" then
         local slot = petSlotFromCursor(a, b, c)
-        ns.Log(("petaction cursor values: %s, %s, %s; picked slot %s -> slot %s"):format(
-            tostring(a), tostring(b), tostring(c), tostring(pickedPetSlot), tostring(slot)))
-        pickedPetSlot = nil
-        if not slot then return nil, kind end
+        ns.Log(("petaction cursor values: %s, %s, %s; picked slot=%s spell=%s name=%s -> slot %s"):format(
+            tostring(a), tostring(b), tostring(c), tostring(picked and picked.slot),
+            tostring(picked and picked.spellID), tostring(picked and picked.name), tostring(slot)))
+        picked = nil
+        if not slot then return nil, "petaction-not-on-bar" end
         local content = { kind = "petaction", slot = slot }
         rememberPet(content, petInfo(slot))
         return content
@@ -136,7 +153,11 @@ function Button:ReceiveCursor()
     end
     local content, detail = contentFromCursor()
     if not content then
-        ns.Print("Can't place '%s' on an Elastibar button yet.", tostring(detail))
+        if detail == "petaction-not-on-bar" then
+            ns.Print("Put that on your pet bar first: Elastibar pet buttons mirror pet bar slots.")
+        else
+            ns.Print("Can't place '%s' on an Elastibar button yet.", tostring(detail))
+        end
         return
     end
     ClearCursor()

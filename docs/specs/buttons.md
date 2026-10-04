@@ -6,7 +6,9 @@ Each button holds one spell, item, macro, or pet action.
 
 - **Decided**: You can place spells, items, and macros by dragging them from the spellbook, your
   bags, or the macro window onto a button.
-- **Decided**: You can place **pet actions** by dragging them from the pet bar.
+- **Decided**: You can place **pet actions** by dragging them from the pet bar or the pet spellbook.
+  A pet action dragged from the spellbook must also be on the pet bar; otherwise Elastibar says
+  to put it there first.
   - A pet action button **mirrors a pet bar slot**: it shows and uses whatever is in that slot,
     so it follows the pet you have out. This is the only way to include pet commands (Attack,
     Follow, Stay, stances), which aren't spells.
