@@ -5,6 +5,7 @@
 --   /eb delete <bar>               delete a bar (no confirmation)
 --   /eb rename <bar> <name>        rename a bar
 --   /eb vis <bar> [rule]           set or show a bar's visibility rule
+--   /eb grid [px]                  show or set the snapping grid size
 --   /eb taintlog [off]             turn the taintLog CVar on (re-applied each login) or off
 --
 -- <bar> is a number from /eb list, a bar id, or a one-word bar name.
@@ -68,6 +69,15 @@ function commands.vis(rest)
     end
 end
 
+-- Grid size for snapping in Edit Mode, until the options panel exists.
+function commands.grid(rest)
+    local size = tonumber(rest)
+    if size then
+        ns.db.gridSize = math.max(4, math.min(200, math.floor(size + 0.5)))
+    end
+    ns.Print("Grid size: %d px. Hold Shift while dragging a bar to move it without snapping.", ns.Grid.Size())
+end
+
 function commands.taintlog(rest)
     -- /console is broken in this beta's chat code, so set the CVar directly. Opt-in only:
     -- this beta throws unrelated Blizzard errors while it's on (docs/platform.md).
@@ -89,6 +99,6 @@ SlashCmdList.ELASTIBAR = function(msg)
     if handler then
         handler(rest)
     else
-        ns.Print("/eb list, /eb new [account] [name], /eb delete <bar>, /eb rename <bar> <name>, /eb vis <bar> [rule]")
+        ns.Print("/eb list, /eb new [account] [name], /eb delete <bar>, /eb rename <bar> <name>, /eb vis <bar> [rule], /eb grid [px]")
     end
 end
