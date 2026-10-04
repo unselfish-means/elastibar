@@ -60,7 +60,46 @@ function Button.Create(parent, onContentChanged)
     return self
 end
 
--- Content from the cursor (spellbook, bags, macro frame).
+-- Pet action buttons mirror a pet bar slot, so what they show changes with the pet.
+-- Tokens (Attack, Follow, Stay, ...) return global string names instead of a name and texture.
+local function petInfo(slot)
+    local name, texture, isToken, isActive, autoCastAllowed, autoCastEnabled, spellID, checksRange, inRange =
+        GetPetActionInfo(slot)
+    if not name then return nil end
+    return {
+        name = isToken and _G[name] or name,
+        texture = isToken and _G[texture] or texture,
+        isActive = isActive,
+        autoCastEnabled = autoCastEnabled,
+        spellID = spellID,
+        inRange = checksRange and inRange or nil,
+    }
+end
+
+-- The cursor's values for a pet action aren't just the slot on this client, so find the
+-- slot whose spell matches one of them, falling back to a value that looks like a slot.
+local function petSlotFromCursor(...)
+    local values, slots = { ... }, NUM_PET_ACTION_SLOTS or 10
+    for slot = 1, slots do
+        local info = petInfo(slot)
+        for _, value in ipairs(values) do
+            if info and info.spellID and value == info.spellID then return slot end
+        end
+    end
+    for _, value in ipairs(values) do
+        if type(value) == "number" and value >= 1 and value <= slots then return value end
+    end
+end
+
+-- Remembers what a pet action looks like, so the button still shows it (greyed out)
+-- when no pet is summoned.
+local function rememberPet(content, info)
+    if info then
+        content.name, content.texture, content.spellID = info.name, info.texture, info.spellID
+    end
+end
+
+-- Content from the cursor (spellbook, bags, macro frame, pet bar).
 local function contentFromCursor()
     local kind, a, b, c = GetCursorInfo()
     if kind == "spell" then
@@ -71,7 +110,12 @@ local function contentFromCursor()
         local name = GetMacroInfo(a)
         return name and { kind = "macro", name = name }, a
     elseif kind == "petaction" then
-        return { kind = "petaction", slot = a } -- "petaction", pet bar slot
+        local slot = petSlotFromCursor(a, b, c)
+        ns.Log(("petaction cursor values: %s, %s, %s -> slot %s"):format(tostring(a), tostring(b), tostring(c), tostring(slot)))
+        if not slot then return nil, kind end
+        local content = { kind = "petaction", slot = slot }
+        rememberPet(content, petInfo(slot))
+        return content
     end
     return nil, kind
 end
@@ -124,22 +168,6 @@ function Button:SetContent(content)
     self:Update()
 end
 
--- Pet action buttons mirror a pet bar slot, so what they show changes with the pet.
--- Tokens (Attack, Follow, Stay, ...) return global string names instead of a name and texture.
-local function petInfo(slot)
-    local name, texture, isToken, isActive, autoCastAllowed, autoCastEnabled, spellID, checksRange, inRange =
-        GetPetActionInfo(slot)
-    if not name then return nil end
-    return {
-        name = isToken and _G[name] or name,
-        texture = isToken and _G[texture] or texture,
-        isActive = isActive,
-        autoCastEnabled = autoCastEnabled,
-        spellID = spellID,
-        inRange = checksRange and inRange or nil,
-    }
-end
-
 -- The spell whose cooldown/usability a button should show (macros show their current spell).
 function Button:DisplaySpell()
     local c = self.content
@@ -152,7 +180,7 @@ function Button:DisplaySpell()
 end
 
 function Button:UpdateIcon()
-    local c, texture = self.content, nil
+    local c, texture, greyed = self.content, nil, false
     if c and c.kind == "spell" then
         texture = C_Spell.GetSpellTexture(c.id)
     elseif c and c.kind == "item" then
@@ -162,9 +190,11 @@ function Button:UpdateIcon()
         if index and index > 0 then texture = select(2, GetMacroInfo(index)) end
     elseif c and c.kind == "petaction" then
         local info = petInfo(c.slot)
-        texture = info and info.texture
+        rememberPet(c, info) -- c is the saved record, so this keeps the remembered look current
+        texture, greyed = c.texture, info == nil
     end
     self.icon:SetTexture(texture)
+    self.icon:SetDesaturated(greyed)
     self.icon:SetShown(texture ~= nil)
 end
 
@@ -284,8 +314,8 @@ function Button:ShowTooltip()
         if petInfo(c.slot) then
             GameTooltip:SetPetAction(c.slot)
         else
-            GameTooltip:SetText(("Pet bar slot %d"):format(c.slot))
-            GameTooltip:AddLine("Empty until you have a pet with an action in this slot.", 0.7, 0.7, 0.7, true)
+            GameTooltip:SetText(c.name or ("Pet bar slot %d"):format(c.slot))
+            GameTooltip:AddLine("Your pet isn't summoned.", 0.7, 0.7, 0.7, true)
         end
     else
         -- Custom macro tooltips come later; for now show the macro's name.
