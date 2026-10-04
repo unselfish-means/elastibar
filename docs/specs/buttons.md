@@ -1,12 +1,21 @@
 # Buttons
 
-Each button holds one spell, item, or macro.
+Each button holds one spell, item, macro, or pet action.
 
 ## Placing things on buttons
 
 - **Decided**: You can place spells, items, and macros by dragging them from the spellbook, your
   bags, or the macro window onto a button.
+- **Decided**: You can place **pet actions** by dragging them from the pet bar.
+  - A pet action button **mirrors a pet bar slot**: it shows and uses whatever is in that slot,
+    so it follows the pet you have out. This is the only way to include pet commands (Attack,
+    Follow, Stay, stances), which aren't spells.
+  - It shows the slot's icon, cooldown, usability, range, and active state (for example, the
+    current stance), and the pet action's own tooltip. An empty slot (no pet) shows as empty.
+  - **Open**: Should right-clicking toggle autocast, as on Blizzard's pet bar? Right now
+    right-click uses the action, and autocast isn't shown.
 - **Decided**: Account bars accept only items and account macros (see [Bars](bars.md#character-and-account-bars)).
+  Pet actions are class-specific, so they're character-bar only, like spells.
 - **Decided**: Buttons can't be changed in combat.
 - **Proposed**: Macros are stored by name, not by index, because macro indexes shift when macros
   are added or deleted. If a macro is deleted, its button shows as empty but remembers the name, so
