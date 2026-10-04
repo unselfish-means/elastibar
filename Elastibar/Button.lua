@@ -10,14 +10,12 @@ local Button = {}
 Button.__index = Button
 ns.Button = Button
 
-local MAX_ACCOUNT_MACROS_FALLBACK = 120 -- MAX_ACCOUNT_MACROS is nil until the macro UI loads
-
 -- Drop the mouse-down half of each click so a mouse click fires once, on release.
 -- (Registering both halves matches what Button Forge does on this client; key-down
 -- handling for keybinds comes later.)
 local clickWrapper = CreateFrame("Frame", nil, nil, "SecureHandlerBaseTemplate")
 
--- Report each kind of update error once, so the spike surfaces API surprises without spamming.
+-- Report each kind of update error once, so API surprises surface without spamming.
 local reported = {}
 local function guard(tag, fn, ...)
     local ok, err = pcall(fn, ...)
@@ -81,10 +79,6 @@ function Button:ReceiveCursor()
         return
     end
     ClearCursor()
-    if content.kind == "macro" then
-        local scope = detail <= (MAX_ACCOUNT_MACROS or MAX_ACCOUNT_MACROS_FALLBACK) and "account" or "character"
-        ns.Print("Macro '%s' is a %s macro (index %d).", content.name, scope, detail)
-    end
     self:SetContent(content)
     if self.onContentChanged then self.onContentChanged(self, content) end
 end
