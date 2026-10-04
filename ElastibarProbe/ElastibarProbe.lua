@@ -295,6 +295,70 @@ local function probeTraits(lines)
     end
 end
 
+local function dumpTable(t)
+    local parts = {}
+    for k, v in pairs(t) do
+        local shown = type(v) == "table" and ("{%d}"):format(#v) or tostring(v)
+        parts[#parts + 1] = ("%s=%s"):format(tostring(k), shown)
+    end
+    table.sort(parts)
+    return table.concat(parts, " ")
+end
+
+-- The talent UI names its columns somehow. List every talent-ish function the
+-- client exposes, and show how purchased ranks spread across node positions.
+local function probeTalentDiscovery(lines)
+    for ns, tbl in pairs(_G) do
+        if type(ns) == "string" and type(tbl) == "table" and ns:find("^C_")
+            and (ns:find("Talent") or ns:find("Trait") or ns:find("Spec")) then
+            for fn, v in pairs(tbl) do
+                if type(v) == "function" then lines[#lines + 1] = ("discover %s.%s"):format(ns, fn) end
+            end
+        elseif type(ns) == "string" and type(tbl) == "function" and ns:find("Talent") then
+            lines[#lines + 1] = ("discover global %s"):format(ns)
+        elseif type(ns) == "string" and type(tbl) == "table" and ns:find("Talent") and ns:find("Frame$") then
+            lines[#lines + 1] = ("discover frame %s"):format(ns)
+        end
+    end
+
+    if not (C_ClassTalents and C_Traits) then return end
+    local okId, configID = pcall(C_ClassTalents.GetActiveConfigID)
+    local okCfg, config = pcall(C_Traits.GetConfigInfo, configID)
+    if not (okId and okCfg and type(config) == "table" and config.treeIDs) then return end
+    local treeID = config.treeIDs[1]
+
+    local okTree, tree = pcall(C_Traits.GetTreeInfo, configID, treeID)
+    lines[#lines + 1] = ("discover GetTreeInfo -> %s"):format(okTree and type(tree) == "table" and dumpTable(tree) or describe(okTree, tree))
+    local okCur, currencies = pcall(C_Traits.GetTreeCurrencyInfo, configID, treeID, false)
+    if okCur and type(currencies) == "table" then
+        for i, c in ipairs(currencies) do
+            lines[#lines + 1] = ("discover currency%d %s"):format(i, type(c) == "table" and dumpTable(c) or tostring(c))
+        end
+    else
+        lines[#lines + 1] = ("discover GetTreeCurrencyInfo -> %s"):format(describe(okCur, currencies))
+    end
+
+    local byX, dumped = {}, false
+    local okNodes, nodeIDs = pcall(C_Traits.GetTreeNodes, treeID)
+    for _, nodeID in ipairs(okNodes and type(nodeIDs) == "table" and nodeIDs or {}) do
+        local ok, node = pcall(C_Traits.GetNodeInfo, configID, nodeID)
+        if ok and type(node) == "table" then
+            if not dumped and (node.ranksPurchased or 0) > 0 then
+                lines[#lines + 1] = ("discover node %s"):format(dumpTable(node))
+                dumped = true
+            end
+            local x = node.posX or -1
+            local agg = byX[x] or { nodes = 0, ranks = 0 }
+            agg.nodes = agg.nodes + 1
+            agg.ranks = agg.ranks + (node.ranksPurchased or 0)
+            byX[x] = agg
+        end
+    end
+    for x, agg in pairs(byX) do
+        lines[#lines + 1] = ("discover posX %06d nodes=%d ranks=%d"):format(x, agg.nodes, agg.ranks)
+    end
+end
+
 local function run()
     if InCombatLockdown() then
         print("|cffff8800ElastibarProbe:|r in combat; will run when combat ends.")
@@ -312,6 +376,7 @@ local function run()
     probeValues(lines)
     probeTalentTrees(lines)
     probeTraits(lines)
+    probeTalentDiscovery(lines)
     table.sort(lines)
     table.sort(missing)
 
