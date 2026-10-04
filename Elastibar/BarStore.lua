@@ -16,7 +16,7 @@ ns = ns or {}
 local BarStore = {}
 ns.BarStore = BarStore
 
-BarStore.DEFAULTS = { cols = 4, rows = 1, scale = 1, layer = "normal", visibility = "show" }
+BarStore.DEFAULTS = { cols = 4, rows = 1, scale = 1, layer = "normal", visibility = "show", hideEmpty = false }
 BarStore.MAX_SIZE = 12 -- rows and columns are each 1..12
 BarStore.LAYERS = { "behind", "normal", "above", "top" }
 

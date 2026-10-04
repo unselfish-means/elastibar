@@ -59,6 +59,7 @@ function Bar:ApplyLayout()
             if not button then
                 button = ns.Button.Create(self.frame, function(_, content)
                     if self.record then self.record.buttons[key] = content end
+                    self:ApplyEmptySlots()
                 end)
                 self.buttons[key] = button
             end
@@ -74,6 +75,24 @@ function Bar:ApplyLayout()
             button.widget:Hide()
         end
     end
+    self:ApplyEmptySlots()
+end
+
+-- "Hide empty slots" (per bar): empty buttons become invisible. Alpha isn't protected,
+-- unlike Show/Hide on secure buttons, so this also works in combat, and invisible buttons
+-- still accept drops. They reappear while something is on the cursor or Edit Mode is open.
+function Bar:ApplyEmptySlots()
+    if not self.record then return end
+    local revealed = not self.record.hideEmpty or GetCursorInfo() ~= nil
+        or (ns.EditMode and ns.EditMode.IsActive())
+    for _, button in pairs(self.buttons) do
+        button.widget:SetAlpha((button.content or revealed) and 1 or 0)
+    end
+end
+
+function Bar:SetHideEmpty(hide)
+    self.record.hideEmpty = hide
+    self:ApplyEmptySlots()
 end
 
 function Bar:ApplyScale()

@@ -69,6 +69,9 @@ Opens next to the selected bar in Edit Mode:
 - the bar's name and scope (character or account);
 - **Scale**, **Columns**, and **Rows** sliders;
 - **Layer** (Behind, Normal, Above UI, Top);
+- **Hide empty slots** (per bar, off for new bars). Hidden slots are made invisible rather than
+  hidden, so they still accept drops and the setting works in combat. They reappear while
+  something is on the cursor and while Edit Mode is open;
 - **Visibility**, which opens the [rule editor](visibility.md#the-rule-editor) (a simple text box
   until build step 5);
 - **Rename**;

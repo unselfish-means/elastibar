@@ -9,7 +9,7 @@
   - **General**
     - Show minimap icon.
     - Show in addon compartment.
-    - Show empty buttons outside edit mode.
+    - (Showing or hiding empty slots is a per-bar setting in Edit Mode; see the layout spec.)
     - Button tooltips: always, out of combat only, or never.
     - Grid size for snapping.
   - **Bars**: a list of every bar this character sees, showing name, scope badge, size, and visibility

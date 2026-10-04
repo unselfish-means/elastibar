@@ -106,7 +106,7 @@ end
 
 local function build()
     panel = CreateFrame("Frame", "ElastibarBarSettings", UIParent, "BackdropTemplate")
-    panel:SetSize(264, 236)
+    panel:SetSize(264, 268)
     panel:SetFrameStrata("DIALOG")
     panel:SetClampedToScreen(true)
     panel:EnableMouse(true)
@@ -151,6 +151,22 @@ local function build()
     panel.layer:SetPoint("LEFT", layerLabel, "LEFT", 70, 0)
     panel.layer:SetScript("OnClick", openLayerMenu)
 
+    local ok, check = pcall(CreateFrame, "CheckButton", nil, panel, "UICheckButtonTemplate")
+    if not ok then -- template not verified on Forever; fall back to the classic checkbox art
+        check = CreateFrame("CheckButton", nil, panel)
+        check:SetNormalTexture("Interface\\Buttons\\UI-CheckBox-Up")
+        check:SetCheckedTexture("Interface\\Buttons\\UI-CheckBox-Check")
+    end
+    panel.hideEmpty = check
+    panel.hideEmpty:SetSize(24, 24)
+    panel.hideEmpty:SetPoint("TOPLEFT", layerLabel, "BOTTOMLEFT", -4, -10)
+    local hideEmptyLabel = panel:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    hideEmptyLabel:SetPoint("LEFT", panel.hideEmpty, "RIGHT", 2, 0)
+    hideEmptyLabel:SetText("Hide empty slots")
+    panel.hideEmpty:SetScript("OnClick", function(self)
+        if current then current:SetHideEmpty(self:GetChecked() and true or false) end
+    end)
+
     local function actionButton(text, x, onClick)
         local button = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
         button:SetSize(76, 22)
@@ -179,6 +195,7 @@ function BarSettings.Refresh(bar)
     panel.cols:Set(record.cols)
     panel.rows:Set(record.rows)
     panel.layer:SetText(LAYER_LABELS[record.layer] or LAYER_LABELS.normal)
+    panel.hideEmpty:SetChecked(record.hideEmpty and true or false)
     refreshing = false
 end
 
