@@ -76,9 +76,16 @@ local function petInfo(slot)
     }
 end
 
--- The cursor's values for a pet action aren't just the slot on this client, so find the
--- slot whose spell matches one of them, falling back to a value that looks like a slot.
+-- The pet bar calls PickupPetAction(slot) when you drag from it; watching that call
+-- (hooksecurefunc is taint-safe) gives the exact slot, whatever the cursor reports.
+local pickedPetSlot
+hooksecurefunc("PickupPetAction", function(slot) pickedPetSlot = slot end)
+
+-- The cursor's values for a pet action aren't just the slot on this client. Use the
+-- picked-up slot if known; otherwise find the slot whose spell matches a cursor value,
+-- falling back to a value that looks like a slot.
 local function petSlotFromCursor(...)
+    if pickedPetSlot then return pickedPetSlot end
     local values, slots = { ... }, NUM_PET_ACTION_SLOTS or 10
     for slot = 1, slots do
         local info = petInfo(slot)
@@ -111,7 +118,9 @@ local function contentFromCursor()
         return name and { kind = "macro", name = name }, a
     elseif kind == "petaction" then
         local slot = petSlotFromCursor(a, b, c)
-        ns.Log(("petaction cursor values: %s, %s, %s -> slot %s"):format(tostring(a), tostring(b), tostring(c), tostring(slot)))
+        ns.Log(("petaction cursor values: %s, %s, %s; picked slot %s -> slot %s"):format(
+            tostring(a), tostring(b), tostring(c), tostring(pickedPetSlot), tostring(slot)))
+        pickedPetSlot = nil
         if not slot then return nil, kind end
         local content = { kind = "petaction", slot = slot }
         rememberPet(content, petInfo(slot))
