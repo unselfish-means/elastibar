@@ -3,9 +3,9 @@
 ## Options panel
 
 - **Decided**: Elastibar has an options panel.
-- **Proposed**: It's registered with Blizzard's settings window (Options › AddOns › Elastibar)
+- **Decided**: It's registered with Blizzard's settings window (Options › AddOns › Elastibar)
   through the `Settings` API, which exists on Forever. `/eb` with no arguments opens it.
-- **Proposed** contents:
+- **Decided** contents:
   - **General**
     - Show minimap icon.
     - Show in addon compartment.
@@ -17,7 +17,7 @@
     - "Character bar" and "Account bar" buttons to create new bars.
     - Per bar: edit (opens edit mode focused on that bar) and delete.
   - **Open edit mode** button.
-- **Proposed**: Per-bar settings (visibility, layer, scale, rename) stay in edit mode's right-click
+- **Decided**: Per-bar settings (visibility, layer, scale, rename) stay in edit mode's right-click
   menu rather than being duplicated in the panel.
 
 ## Minimap icon
