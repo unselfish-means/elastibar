@@ -19,19 +19,29 @@ local function state()
     return ns.charDB.spike
 end
 
+-- Positions are kept per Blizzard Edit Mode layout, like Blizzard's own frames.
+local function layoutKey()
+    return ns.EditModeLayoutName and ns.EditModeLayoutName() or "default"
+end
+
 local function savePosition()
     local point, _, relativePoint, x, y = bar:GetPoint()
-    state().position = { point, relativePoint, x, y }
+    state().positions = state().positions or {}
+    state().positions[layoutKey()] = { point, relativePoint, x, y }
 end
 
 local function applyPosition()
     bar:ClearAllPoints()
-    local pos = state().position
+    local pos = state().positions and state().positions[layoutKey()] or state().position
     if pos then
         bar:SetPoint(pos[1], UIParent, pos[2], pos[3], pos[4])
     else
         bar:SetPoint("CENTER", UIParent, "CENTER", 0, -150)
     end
+end
+
+local function applyScale()
+    bar:SetScale(state().scale or 1)
 end
 
 -- Translate the stored rule and hand it to the game. Re-run whenever talents or specs change.
@@ -61,6 +71,7 @@ local function build()
     bar:SetSize(COLS * SIZE + (COLS - 1) * GAP, ROWS * SIZE + (ROWS - 1) * GAP)
     bar:SetMovable(true)
     bar:SetClampedToScreen(true)
+    applyScale()
     applyPosition()
 
     local handle = CreateFrame("Frame", nil, bar, "BackdropTemplate")
@@ -100,6 +111,16 @@ local function build()
     end)
 
     applyVisibility(false)
+
+    ns.spike = {
+        bar = bar,
+        handle = handle,
+        state = state,
+        savePosition = savePosition,
+        applyPosition = applyPosition,
+        applyScale = applyScale,
+    }
+    if ns.OnSpikeBuilt then ns.OnSpikeBuilt(ns.spike) end
 end
 
 ns.OnLoaded = function()
@@ -155,14 +176,17 @@ SlashCmdList.ELASTIBAR = function(msg)
         applyVisibility(true)
     elseif cmd == "specs" then
         printSpecs()
+    elseif cmd == "editmode" and ns.EditModeDiagnostics then
+        ns.EditModeDiagnostics()
     elseif cmd == "reset" then
         if InCombatLockdown() then
             ns.Print("Can't move bars in combat.")
             return
         end
         state().position = nil
+        if state().positions then state().positions[layoutKey()] = nil end
         applyPosition()
     else
-        ns.Print("/eb vis <rule>, /eb vis, /eb specs, /eb reset")
+        ns.Print("/eb vis <rule>, /eb vis, /eb specs, /eb editmode, /eb reset")
     end
 end
