@@ -138,17 +138,29 @@ function Button:UpdateIcon()
     self.icon:SetShown(texture ~= nil)
 end
 
+-- In combat, cooldown numbers are "secret": addon code can't pass them to SetCooldown.
+-- Spells use a duration object instead, which the cooldown frame accepts as-is.
+local itemSecretLogged = false
+
 function Button:UpdateCooldown()
     local c, spellID = self.content, self:DisplaySpell()
     if spellID then
-        local cd = C_Spell.GetSpellCooldown(spellID)
-        if cd and cd.isEnabled then
-            self.cooldown:SetCooldown(cd.startTime, cd.duration, cd.modRate)
+        local duration = C_Spell.GetSpellCooldownDuration(spellID)
+        if duration then
+            self.cooldown:SetCooldownFromDurationObject(duration)
         else
             self.cooldown:Clear()
         end
     elseif c and c.kind == "item" then
         local start, duration, enable = C_Item.GetItemCooldown(c.id)
+        if issecretvalue and issecretvalue(start) then
+            -- No item duration API on this client; record what we see and leave the swipe as is.
+            if not itemSecretLogged then
+                itemSecretLogged = true
+                ns.Log("item cooldown values are secret in combat; swipe left unchanged")
+            end
+            return
+        end
         if enable then
             self.cooldown:SetCooldown(start, duration)
         else
@@ -178,7 +190,8 @@ function Button:UpdateUsable()
         inRange = C_Spell.IsSpellInRange(spellID, "target")
     elseif c and c.kind == "item" then
         usable = C_Item.IsUsableItem(c.id)
-        inRange = C_Item.IsItemInRange(c.id, "target")
+        -- IsItemInRange is protected in combat on this client (calling it is a blocked action).
+        if not InCombatLockdown() then inRange = C_Item.IsItemInRange(c.id, "target") end
     end
     if inRange == false then
         self.icon:SetVertexColor(0.8, 0.1, 0.1)
