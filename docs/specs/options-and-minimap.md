@@ -25,7 +25,7 @@
 - **Decided**: Elastibar has a minimap icon.
 - **Decided**: Built with the standard LibDataBroker + LibDBIcon libraries, so it also works with
   minimap-button collectors and broker displays.
-- **Proposed** behavior:
+- **Decided** behavior:
   - Left-click toggles edit mode.
   - Right-click opens the options panel.
   - Dragging moves the icon around the minimap.
