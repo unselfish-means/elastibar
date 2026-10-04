@@ -1,8 +1,8 @@
--- Button: a secure action button that holds a spell, an item, or a macro.
+-- Button: a secure action button that holds a spell, an item, a macro, or a pet action.
 --
 -- Content is stored as { kind = "spell", id = spellID }, { kind = "item", id = itemID },
--- or { kind = "macro", name = macroName }. Macros are stored by name because macro
--- indexes shift when macros are added or deleted.
+-- { kind = "macro", name = macroName }, or { kind = "petaction", slot = petBarSlot }.
+-- Macros are stored by name because macro indexes shift when macros are added or deleted.
 
 local _, ns = ...
 
@@ -60,7 +60,69 @@ function Button.Create(parent, onContentChanged)
     return self
 end
 
--- Content from the cursor (spellbook, bags, macro frame).
+-- Pet action buttons mirror a pet bar slot, so what they show changes with the pet.
+-- Tokens (Attack, Follow, Stay, ...) return global string names instead of a name and texture.
+local function petInfo(slot)
+    local name, texture, isToken, isActive, autoCastAllowed, autoCastEnabled, spellID, checksRange, inRange =
+        GetPetActionInfo(slot)
+    if not name then return nil end
+    return {
+        name = isToken and _G[name] or name,
+        texture = isToken and _G[texture] or texture,
+        isActive = isActive,
+        autoCastEnabled = autoCastEnabled,
+        spellID = spellID,
+        inRange = checksRange and inRange or nil,
+    }
+end
+
+-- What was last picked up, from the pet bar or the spellbook. The cursor's own values for
+-- a pet action are spellbook positions on this client, not pet bar slots, so watch the
+-- pickup calls instead (hooksecurefunc is taint-safe):
+--   - the pet bar calls PickupPetAction(slot)
+--   - the spellbook calls C_SpellBook.PickupSpellBookItem(index, bank)
+local picked
+hooksecurefunc("PickupPetAction", function(slot) picked = { slot = slot } end)
+if C_SpellBook and C_SpellBook.PickupSpellBookItem then
+    hooksecurefunc(C_SpellBook, "PickupSpellBookItem", function(index, bank)
+        local ok, info = pcall(C_SpellBook.GetSpellBookItemInfo, index, bank)
+        picked = ok and type(info) == "table" and { spellID = info.spellID, name = info.name } or nil
+    end)
+end
+
+-- The pet bar slot for a pet action on the cursor: the picked-up pet bar slot, else the
+-- slot holding the picked-up spellbook entry (by spell ID, or by name for commands such
+-- as Attack), else a slot whose spell matches a cursor value. Never guess from a small
+-- cursor value: those are spellbook positions, which put the wrong action on the button.
+local function petSlotFromCursor(...)
+    local slots = NUM_PET_ACTION_SLOTS or 10
+    if picked and picked.slot then return picked.slot end
+    if picked then
+        for slot = 1, slots do
+            local info = petInfo(slot)
+            if info and ((picked.spellID and info.spellID == picked.spellID) or (picked.name and info.name == picked.name)) then
+                return slot
+            end
+        end
+    end
+    local values = { ... }
+    for slot = 1, slots do
+        local info = petInfo(slot)
+        for _, value in ipairs(values) do
+            if info and info.spellID and value == info.spellID then return slot end
+        end
+    end
+end
+
+-- Remembers what a pet action looks like, so the button still shows it (greyed out)
+-- when no pet is summoned.
+local function rememberPet(content, info)
+    if info then
+        content.name, content.texture, content.spellID = info.name, info.texture, info.spellID
+    end
+end
+
+-- Content from the cursor (spellbook, bags, macro frame, pet bar).
 local function contentFromCursor()
     local kind, a, b, c = GetCursorInfo()
     if kind == "spell" then
@@ -70,6 +132,16 @@ local function contentFromCursor()
     elseif kind == "macro" then
         local name = GetMacroInfo(a)
         return name and { kind = "macro", name = name }, a
+    elseif kind == "petaction" then
+        local slot = petSlotFromCursor(a, b, c)
+        ns.Log(("petaction cursor values: %s, %s, %s; picked slot=%s spell=%s name=%s -> slot %s"):format(
+            tostring(a), tostring(b), tostring(c), tostring(picked and picked.slot),
+            tostring(picked and picked.spellID), tostring(picked and picked.name), tostring(slot)))
+        picked = nil
+        if not slot then return nil, "petaction-not-on-bar" end
+        local content = { kind = "petaction", slot = slot }
+        rememberPet(content, petInfo(slot))
+        return content
     end
     return nil, kind
 end
@@ -81,7 +153,11 @@ function Button:ReceiveCursor()
     end
     local content, detail = contentFromCursor()
     if not content then
-        ns.Print("Can't place '%s' on an Elastibar button yet.", tostring(detail))
+        if detail == "petaction-not-on-bar" then
+            ns.Print("Put that on your pet bar first: Elastibar pet buttons mirror pet bar slots.")
+        else
+            ns.Print("Can't place '%s' on an Elastibar button yet.", tostring(detail))
+        end
         return
     end
     ClearCursor()
@@ -101,6 +177,7 @@ function Button:SetContent(content)
     w:SetAttribute("spell", nil)
     w:SetAttribute("item", nil)
     w:SetAttribute("macro", nil)
+    w:SetAttribute("action", nil)
     if content and content.kind == "spell" then
         setType("spell")
         w:SetAttribute("spell", content.id)
@@ -113,6 +190,10 @@ function Button:SetContent(content)
             setType("macro")
             w:SetAttribute("macro", index)
         end
+    elseif content and content.kind == "petaction" then
+        -- The secure "pet" action runs CastPetAction on the pet bar slot.
+        setType("pet")
+        w:SetAttribute("action", content.slot)
     end
     self:Update()
 end
@@ -129,7 +210,7 @@ function Button:DisplaySpell()
 end
 
 function Button:UpdateIcon()
-    local c, texture = self.content, nil
+    local c, texture, greyed = self.content, nil, false
     if c and c.kind == "spell" then
         texture = C_Spell.GetSpellTexture(c.id)
     elseif c and c.kind == "item" then
@@ -137,18 +218,39 @@ function Button:UpdateIcon()
     elseif c and c.kind == "macro" then
         local index = GetMacroIndexByName(c.name)
         if index and index > 0 then texture = select(2, GetMacroInfo(index)) end
+    elseif c and c.kind == "petaction" then
+        local info = petInfo(c.slot)
+        rememberPet(c, info) -- c is the saved record, so this keeps the remembered look current
+        texture, greyed = c.texture, info == nil
     end
     self.icon:SetTexture(texture)
+    self.icon:SetDesaturated(greyed)
     self.icon:SetShown(texture ~= nil)
 end
 
 -- In combat, cooldown numbers are "secret": addon code can't pass them to SetCooldown.
 -- Spells use a duration object instead, which the cooldown frame accepts as-is.
-local itemSecretLogged = false
+local itemSecretLogged, petSecretLogged = false, false
 
 function Button:UpdateCooldown()
     local c, spellID = self.content, self:DisplaySpell()
-    if spellID then
+    if c and c.kind == "petaction" then
+        local start, duration, enable = GetPetActionCooldown(c.slot)
+        if issecretvalue and issecretvalue(start) then
+            -- Fall back to the pet spell's duration object, if the slot is a spell.
+            local info = petInfo(c.slot)
+            local object = info and info.spellID and C_Spell.GetSpellCooldownDuration(info.spellID)
+            if object then self.cooldown:SetCooldownFromDurationObject(object) end
+            if not petSecretLogged then
+                petSecretLogged = true
+                ns.Log("pet action cooldown values are secret in combat; using the spell duration object")
+            end
+        elseif enable and enable ~= 0 then
+            self.cooldown:SetCooldown(start, duration)
+        else
+            self.cooldown:Clear()
+        end
+    elseif spellID then
         local duration = C_Spell.GetSpellCooldownDuration(spellID)
         if duration then
             self.cooldown:SetCooldownFromDurationObject(duration)
@@ -196,6 +298,10 @@ function Button:UpdateUsable()
         usable = C_Item.IsUsableItem(c.id)
         -- IsItemInRange is protected in combat on this client (calling it is a blocked action).
         if not InCombatLockdown() then inRange = C_Item.IsItemInRange(c.id, "target") end
+    elseif c and c.kind == "petaction" then
+        local info = petInfo(c.slot)
+        usable = info ~= nil and GetPetActionSlotUsable(c.slot)
+        inRange = info and info.inRange
     end
     if inRange == false then
         self.icon:SetVertexColor(0.8, 0.1, 0.1)
@@ -207,8 +313,14 @@ function Button:UpdateUsable()
 end
 
 function Button:UpdateChecked()
-    local spellID = self:DisplaySpell()
-    local active = spellID and (C_Spell.IsCurrentSpell(spellID) or C_Spell.IsAutoRepeatSpell(spellID))
+    local c, active = self.content, nil
+    if c and c.kind == "petaction" then
+        local info = petInfo(c.slot)
+        active = info and info.isActive -- e.g. the current stance (Defensive) or Follow
+    else
+        local spellID = self:DisplaySpell()
+        active = spellID and (C_Spell.IsCurrentSpell(spellID) or C_Spell.IsAutoRepeatSpell(spellID))
+    end
     self.widget:SetChecked(active and true or false)
 end
 
@@ -228,6 +340,13 @@ function Button:ShowTooltip()
         GameTooltip:SetSpellByID(c.id)
     elseif c.kind == "item" then
         GameTooltip:SetItemByID(c.id)
+    elseif c.kind == "petaction" then
+        if petInfo(c.slot) then
+            GameTooltip:SetPetAction(c.slot)
+        else
+            GameTooltip:SetText(c.name or ("Pet bar slot %d"):format(c.slot))
+            GameTooltip:AddLine("Your pet isn't summoned.", 0.7, 0.7, 0.7, true)
+        end
     else
         -- Custom macro tooltips come later; for now show the macro's name.
         GameTooltip:SetText(c.name)
