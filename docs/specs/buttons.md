@@ -11,7 +11,9 @@ Each button holds one spell, item, macro, or pet action.
     so it follows the pet you have out. This is the only way to include pet commands (Attack,
     Follow, Stay, stances), which aren't spells.
   - It shows the slot's icon, cooldown, usability, range, and active state (for example, the
-    current stance), and the pet action's own tooltip. An empty slot (no pet) shows as empty.
+    current stance), and the pet action's own tooltip.
+  - **Decided**: With no pet summoned, the button still shows the last icon seen in that slot,
+    greyed out, and its tooltip names the action and says the pet isn't summoned.
   - **Open**: Should right-clicking toggle autocast, as on Blizzard's pet bar? Right now
     right-click uses the action, and autocast isn't shown.
 - **Decided**: Account bars accept only items and account macros (see [Bars](bars.md#character-and-account-bars)).
