@@ -30,5 +30,14 @@
   - Dragging moves the icon around the minimap.
   - The hover tooltip shows the bar count and these hints.
 - **Proposed**: The icon can be hidden from the options panel.
-- **Proposed**: Elastibar is also listed in the addon compartment menu, if Forever has one
-  (`AddonCompartmentFrame`, not yet probed).
+## Addon compartment
+
+Forever has Blizzard's addon compartment: the "AddOns" dropdown under the calendar icon by the minimap.
+
+- **Decided**: Elastibar is listed in the addon compartment, with the same clicks as the minimap icon.
+- **Proposed**: Register it through LibDBIcon's compartment support so one LibDataBroker object drives
+  both the minimap icon and the compartment entry. Two ways are confirmed to work on this client:
+  - the `.toc` field `## AddonCompartmentFunc` (used by Baganator and Platynator);
+  - LibDBIcon's compartment support (used by SimpleAddonManager).
+- **Proposed**: The minimap icon and the compartment entry can each be hidden separately, so people
+  who keep a clean minimap can rely on the compartment alone.
