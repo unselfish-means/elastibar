@@ -48,6 +48,9 @@ local APIS = {
         "C_SpecializationInfo.GetActiveSpecGroup", "C_SpecializationInfo.GetNumSpecializationsForClassID",
         "GetActiveTalentGroup", "GetNumTalentGroups", "C_ClassTalents.GetActiveConfigID",
         "GetNumTalentTabs", "GetTalentTabInfo", "GetTalentInfo",
+        "C_ClassTalents.GetConfigIDsBySpecID", "C_Traits.GetConfigInfo", "C_Traits.GetTreeInfo",
+        "C_Traits.GetTreeNodes", "C_Traits.GetNodeInfo", "C_Traits.GetSubTreeInfo",
+        "C_Traits.GetTreeCurrencyInfo",
     },
     tooltip = {
         "GameTooltip", "GameTooltip.SetOwner", "GameTooltip.SetSpellByID",
@@ -231,6 +234,67 @@ local function probeTalentTrees(lines)
     end
 end
 
+-- Forever's three-tree talent UI may sit on the Retail trait system. Walk the
+-- active config and total points per tree and per sub-tree, with any names found.
+local function probeTraits(lines)
+    if not (C_ClassTalents and C_ClassTalents.GetActiveConfigID and C_Traits) then
+        lines[#lines + 1] = "traits C_ClassTalents/C_Traits missing"
+        return
+    end
+    local _, specID = pcall(C_SpecializationInfo.GetSpecializationInfo, 1)
+    if C_ClassTalents.GetConfigIDsBySpecID then
+        local ok, ids = pcall(C_ClassTalents.GetConfigIDsBySpecID, specID)
+        lines[#lines + 1] = ("traits GetConfigIDsBySpecID(%s) -> %s")
+            :format(tostring(specID), ok and type(ids) == "table" and describe(unpack(ids)) or describe(ok, ids))
+    end
+
+    local okId, configID = pcall(C_ClassTalents.GetActiveConfigID)
+    lines[#lines + 1] = ("traits activeConfigID -> %s"):format(describe(okId, configID))
+    if not okId or not configID then return end
+
+    local okCfg, config = pcall(C_Traits.GetConfigInfo, configID)
+    if not okCfg or type(config) ~= "table" then
+        lines[#lines + 1] = ("traits GetConfigInfo -> %s"):format(describe(okCfg, config))
+        return
+    end
+    lines[#lines + 1] = ("traits config name=%s type=%s treeIDs=%s")
+        :format(tostring(config.name), tostring(config.type), describe(unpack(config.treeIDs or {})))
+
+    for _, treeID in ipairs(config.treeIDs or {}) do
+        local okNodes, nodeIDs = pcall(C_Traits.GetTreeNodes, treeID)
+        if not okNodes or type(nodeIDs) ~= "table" then
+            lines[#lines + 1] = ("traits tree%s GetTreeNodes -> %s"):format(treeID, describe(okNodes, nodeIDs))
+        else
+            local bySub, total = {}, 0
+            for _, nodeID in ipairs(nodeIDs) do
+                local okNode, node = pcall(C_Traits.GetNodeInfo, configID, nodeID)
+                if okNode and type(node) == "table" then
+                    local key = node.subTreeID or "none"
+                    local agg = bySub[key] or { nodes = 0, ranks = 0, minX = math.huge, maxX = -math.huge }
+                    agg.nodes = agg.nodes + 1
+                    agg.ranks = agg.ranks + (node.ranksPurchased or 0)
+                    if node.posX then
+                        agg.minX = math.min(agg.minX, node.posX)
+                        agg.maxX = math.max(agg.maxX, node.posX)
+                    end
+                    bySub[key] = agg
+                    total = total + (node.ranksPurchased or 0)
+                end
+            end
+            lines[#lines + 1] = ("traits tree%s nodes=%d ranksPurchased=%d"):format(treeID, #nodeIDs, total)
+            for subID, agg in pairs(bySub) do
+                local name = "n/a"
+                if subID ~= "none" and C_Traits.GetSubTreeInfo then
+                    local okSub, sub = pcall(C_Traits.GetSubTreeInfo, configID, subID)
+                    name = okSub and type(sub) == "table" and tostring(sub.name) or describe(okSub, sub)
+                end
+                lines[#lines + 1] = ("traits tree%s subTree=%s name=%s nodes=%d ranks=%d posX=%s..%s")
+                    :format(treeID, tostring(subID), name, agg.nodes, agg.ranks, tostring(agg.minX), tostring(agg.maxX))
+            end
+        end
+    end
+end
+
 local function run()
     if InCombatLockdown() then
         print("|cffff8800ElastibarProbe:|r in combat; will run when combat ends.")
@@ -247,6 +311,7 @@ local function run()
     probeStrata(lines, missing)
     probeValues(lines)
     probeTalentTrees(lines)
+    probeTraits(lines)
     table.sort(lines)
     table.sort(missing)
 
