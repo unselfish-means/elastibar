@@ -10,4 +10,5 @@ Core.lua
 Conditionals.lua
 SpecTrees.lua
 Button.lua
+EditModeSpike.lua
 Spike.lua
