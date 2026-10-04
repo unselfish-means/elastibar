@@ -1,14 +1,19 @@
--- Button: a secure action button that holds a spell, an item, a macro, or a pet action.
+-- Button: a secure action button that holds a spell, an item or toy, a macro, a pet action,
+-- a mount, or a battle pet.
 --
 -- Content is stored as { kind = "spell", id = spellID }, { kind = "item", id = itemID },
--- { kind = "macro", name = macroName }, or { kind = "petaction", slot = petBarSlot }.
+-- { kind = "macro", name = macroName }, { kind = "petaction", slot = petBarSlot },
+-- { kind = "mount", id = mountID, spellID = ... }, or { kind = "battlepet", guid = petGUID }.
 -- Macros are stored by name because macro indexes shift when macros are added or deleted.
+-- Toys are items; they're used with the secure "toy" action since they aren't in your bags.
 
 local _, ns = ...
 
 local Button = {}
 Button.__index = Button
 ns.Button = Button
+
+local RANDOM_FAVORITE_MOUNT_ID = 268435455 -- the mount journal's "Summon Random Favorite Mount"
 
 -- Drop the mouse-down half of each click so a mouse click fires once, on release.
 -- (Registering both halves matches what Button Forge does on this client; key-down
@@ -27,7 +32,9 @@ end
 
 local sequence = 0
 
-function Button.Create(parent, onContentChanged)
+-- accepts(content, macroIndex) decides what the button's bar may hold (account bars refuse
+-- some kinds); nil accepts everything.
+function Button.Create(parent, onContentChanged, accepts)
     sequence = sequence + 1
     local name = "ElastibarButton" .. sequence
     local widget = CreateFrame("CheckButton", name, parent, "ActionButtonTemplate, SecureActionButtonTemplate")
@@ -41,6 +48,7 @@ function Button.Create(parent, onContentChanged)
         count = _G[name .. "Count"] or widget.Count,
         hotkey = _G[name .. "HotKey"] or widget.HotKey,
         onContentChanged = onContentChanged,
+        accepts = accepts,
     }, Button)
 
     -- With pressAndHoldAction, the press runs "type" and the release runs "typerelease".
@@ -164,8 +172,26 @@ local function contentFromCursor()
         local content = { kind = "petaction", slot = slot }
         rememberPet(content, petInfo(slot))
         return content
+    elseif kind == "mount" then
+        -- "mount", mountID. The "random favorite" entry has no single mount to cast.
+        if a == RANDOM_FAVORITE_MOUNT_ID then return nil, "the random favorite mount" end
+        local name, spellID = C_MountJournal.GetMountInfoByID(a)
+        return spellID and { kind = "mount", id = a, spellID = spellID, name = name }, nil
+    elseif kind == "battlepet" then
+        return { kind = "battlepet", guid = a } -- "battlepet", petGUID
     end
     return nil, kind
+end
+
+local function isToy(itemID)
+    return PlayerHasToy and PlayerHasToy(itemID) or false
+end
+
+-- A mount's position in the mount journal, which C_MountJournal.Pickup needs.
+local function mountJournalIndex(mountID)
+    for i = 1, C_MountJournal.GetNumDisplayedMounts() do
+        if select(12, C_MountJournal.GetDisplayedMountInfo(i)) == mountID then return i end
+    end
 end
 
 -- Puts saved contents on the game cursor. If the client can't pick it up, the cursor stays
@@ -174,8 +200,15 @@ local function putOnCursor(content)
     local ok = true
     if content.kind == "spell" then
         ok = pcall(C_Spell.PickupSpell, content.id)
+    elseif content.kind == "item" and isToy(content.id) and C_ToyBox and C_ToyBox.PickupToyBoxItem then
+        ok = pcall(C_ToyBox.PickupToyBoxItem, content.id)
     elseif content.kind == "item" then
         ok = pcall(C_Item.PickupItem or PickupItem, content.id)
+    elseif content.kind == "mount" then
+        local index = mountJournalIndex(content.id) -- not found if the journal filters hide it
+        if index then ok = pcall(C_MountJournal.Pickup, index) else ok = pcall(C_Spell.PickupSpell, content.spellID) end
+    elseif content.kind == "battlepet" then
+        ok = pcall(C_PetJournal.PickupPet, content.guid)
     elseif content.kind == "macro" then
         local index = GetMacroIndexByName(content.name)
         if index and index > 0 then ok = pcall(PickupMacro, index) end
@@ -204,6 +237,11 @@ function Button:ReceiveCursor()
             ns.Print("Can't place '%s' on an Elastibar button yet.", tostring(detail))
         end
         return false
+    end
+    -- detail is the macro index for macros (account bars only take account macros).
+    if self.accepts and not self.accepts(content, detail) then
+        ns.Print(ns.BarStore.ACCOUNT_REFUSAL)
+        return false -- leaves it on the cursor
     end
     ClearCursor()
     local previous = self.content
@@ -240,13 +278,25 @@ function Button:SetContent(content)
     w:SetAttribute("spell", nil)
     w:SetAttribute("item", nil)
     w:SetAttribute("macro", nil)
+    w:SetAttribute("macrotext", nil)
     w:SetAttribute("action", nil)
+    w:SetAttribute("toy", nil)
     if content and content.kind == "spell" then
         setType("spell")
         w:SetAttribute("spell", content.id)
+    elseif content and content.kind == "item" and isToy(content.id) then
+        setType("toy")
+        w:SetAttribute("toy", content.id)
     elseif content and content.kind == "item" then
         setType("item")
         w:SetAttribute("item", "item:" .. content.id)
+    elseif content and content.kind == "mount" then
+        -- Cast by name, as Button Forge does on this client.
+        setType("macro")
+        w:SetAttribute("macrotext", "/cast " .. (C_Spell.GetSpellName(content.spellID) or content.name or ""))
+    elseif content and content.kind == "battlepet" then
+        setType("macro")
+        w:SetAttribute("macrotext", "/summonpet " .. content.guid)
     elseif content and content.kind == "macro" then
         local index = GetMacroIndexByName(content.name)
         if index and index > 0 then
@@ -266,6 +316,7 @@ function Button:DisplaySpell()
     local c = self.content
     if not c then return nil end
     if c.kind == "spell" then return c.id end
+    if c.kind == "mount" then return c.spellID end
     if c.kind == "macro" then
         local index = GetMacroIndexByName(c.name)
         return index and index > 0 and GetMacroSpell(index) or nil
@@ -276,6 +327,10 @@ function Button:UpdateIcon()
     local c, texture, greyed = self.content, nil, false
     if c and c.kind == "spell" then
         texture = C_Spell.GetSpellTexture(c.id)
+    elseif c and c.kind == "mount" then
+        texture = C_Spell.GetSpellTexture(c.spellID)
+    elseif c and c.kind == "battlepet" then
+        texture = select(9, C_PetJournal.GetPetInfoByPetID(c.guid))
     elseif c and c.kind == "item" then
         texture = C_Item.GetItemIconByID(c.id)
     elseif c and c.kind == "macro" then
@@ -357,6 +412,8 @@ function Button:UpdateUsable()
     if spellID then
         usable = C_Spell.IsSpellUsable(spellID)
         inRange = C_Spell.IsSpellInRange(spellID, "target")
+    elseif c and c.kind == "item" and isToy(c.id) then
+        usable = not C_ToyBox.IsToyUsable or C_ToyBox.IsToyUsable(c.id) -- toys aren't in bags
     elseif c and c.kind == "item" then
         usable = C_Item.IsUsableItem(c.id)
         -- IsItemInRange is protected in combat on this client (calling it is a blocked action).
@@ -380,6 +437,10 @@ function Button:UpdateChecked()
     if c and c.kind == "petaction" then
         local info = petInfo(c.slot)
         active = info and info.isActive -- e.g. the current stance (Defensive) or Follow
+    elseif c and c.kind == "mount" then
+        active = select(4, C_MountJournal.GetMountInfoByID(c.id)) -- currently mounted on it
+    elseif c and c.kind == "battlepet" then
+        active = C_PetJournal.GetSummonedPetGUID() == c.guid
     else
         local spellID = self:DisplaySpell()
         active = spellID and (C_Spell.IsCurrentSpell(spellID) or C_Spell.IsAutoRepeatSpell(spellID))
@@ -401,8 +462,18 @@ function Button:ShowTooltip()
     GameTooltip:SetOwner(self.widget, "ANCHOR_RIGHT")
     if c.kind == "spell" then
         GameTooltip:SetSpellByID(c.id)
+    elseif c.kind == "item" and isToy(c.id) and GameTooltip.SetToyByItemID then
+        GameTooltip:SetToyByItemID(c.id)
     elseif c.kind == "item" then
         GameTooltip:SetItemByID(c.id)
+    elseif c.kind == "mount" then
+        if not (GameTooltip.SetMountBySpellID and pcall(GameTooltip.SetMountBySpellID, GameTooltip, c.spellID)) then
+            GameTooltip:SetSpellByID(c.spellID)
+        end
+    elseif c.kind == "battlepet" then
+        local _, customName, level, _, _, _, _, name = C_PetJournal.GetPetInfoByPetID(c.guid)
+        GameTooltip:SetText(customName or name or "Battle pet")
+        if level then GameTooltip:AddLine(("Level %d battle pet"):format(level), 0.7, 0.7, 0.7) end
     elseif c.kind == "petaction" then
         if petInfo(c.slot) then
             GameTooltip:SetPetAction(c.slot)

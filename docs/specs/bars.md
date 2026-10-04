@@ -19,11 +19,13 @@ Every bar has a scope, shown as a badge on its label in edit mode.
 |---|---|---|
 | Visible on | The character that created it | Every character on the account |
 | Layout (position, size, layer, visibility) | Per character | Shared |
-| Contents | Spells, items, any macro, pet actions | Items and account macros only |
+| Contents | Spells, items, toys, mounts, battle pets, any macro, pet actions | Items, toys, mounts, battle pets, and account macros |
 
 - **Decided**: Account bars share both layout and contents.
-- **Decided**: Dropping a class spell or a character macro on an account bar is rejected with a short
-  message ("Account bars hold items and account macros"). There's no allowlist.
+- **Decided**: Dropping a spell, a pet action, or a character macro on an account bar is rejected
+  with a short message ("Account bars hold items, toys, mounts, pets, and account macros.") and
+  stays on the cursor. There's no allowlist.
+  - Contents placed on an account bar before this rule existed are left as they are.
 - **Why**: Account bars are for things every character has, such as a hearthstone, food, and shared
   macros. A Mage's Frostbolt makes no sense on a Warrior.
 - **Decided**: A bar's scope is set when it's created. Changing scope afterwards is not in v1.

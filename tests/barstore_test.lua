@@ -90,5 +90,15 @@ check("clamp high", S.ClampSize(40), 12)
 check("clamp rounds", S.ClampSize(3.6), 4)
 check("clamp garbage", S.ClampSize("x"), 1)
 
+-- Account bar rules
+check("account allows item", S.AccountAllows({ kind = "item", id = 6948 }), true)
+check("account allows mount", S.AccountAllows({ kind = "mount", id = 6 }), true)
+check("account allows battle pet", S.AccountAllows({ kind = "battlepet", guid = "BattlePet-0-1" }), true)
+check("account allows account macro", S.AccountAllows({ kind = "macro", name = "x" }, 19, 120), true)
+check("account refuses character macro", S.AccountAllows({ kind = "macro", name = "x" }, 121, 120), false)
+check("account refuses macro of unknown index", S.AccountAllows({ kind = "macro", name = "x" }, nil, 120), false)
+check("account refuses spell", S.AccountAllows({ kind = "spell", id = 5149 }), false)
+check("account refuses pet action", S.AccountAllows({ kind = "petaction", slot = 1 }), false)
+
 print(("%d checks, %d failed"):format(count, failures))
 if failures > 0 then os.exit(1) end
