@@ -359,6 +359,69 @@ local function probeTalentDiscovery(lines)
     end
 end
 
+-- Nodes carry groupIDs; the talent UI likely labels its columns from group
+-- display info. Also try the class's spec IDs in case they map to trees.
+local function probeTalentGroups(lines)
+    if not (C_ClassTalents and C_Traits) then return end
+    local okId, configID = pcall(C_ClassTalents.GetActiveConfigID)
+    local okCfg, config = pcall(C_Traits.GetConfigInfo, configID)
+    if not (okId and okCfg and type(config) == "table" and config.treeIDs) then return end
+    local treeID = config.treeIDs[1]
+
+    local okNodes, nodeIDs = pcall(C_Traits.GetTreeNodes, treeID)
+    local byGroup = {}
+    for _, nodeID in ipairs(okNodes and type(nodeIDs) == "table" and nodeIDs or {}) do
+        local ok, node = pcall(C_Traits.GetNodeInfo, configID, nodeID)
+        if ok and type(node) == "table" then
+            for _, groupID in ipairs(node.groupIDs or {}) do
+                local agg = byGroup[groupID] or { nodes = 0, ranks = 0, minX = math.huge, maxX = -math.huge }
+                agg.nodes = agg.nodes + 1
+                agg.ranks = agg.ranks + (node.ranksPurchased or 0)
+                agg.minX = math.min(agg.minX, node.posX or 0)
+                agg.maxX = math.max(agg.maxX, node.posX or 0)
+                byGroup[groupID] = agg
+            end
+        end
+    end
+    for groupID, agg in pairs(byGroup) do
+        lines[#lines + 1] = ("groups group%s nodes=%d ranks=%d posX=%s..%s")
+            :format(tostring(groupID), agg.nodes, agg.ranks, tostring(agg.minX), tostring(agg.maxX))
+        if C_Traits.GetGroupCurrencyInfo then
+            local ok, info = pcall(C_Traits.GetGroupCurrencyInfo, configID, groupID)
+            lines[#lines + 1] = ("groups group%s GetGroupCurrencyInfo -> %s")
+                :format(tostring(groupID), ok and type(info) == "table" and dumpTable(info) or describe(ok, info))
+        end
+    end
+
+    if C_Traits.GetGroupDisplayInfoByTreeID then
+        local ok, info = pcall(C_Traits.GetGroupDisplayInfoByTreeID, treeID)
+        if ok and type(info) == "table" then
+            lines[#lines + 1] = ("groups display top %s"):format(dumpTable(info))
+            for k, v in pairs(info) do
+                if type(v) == "table" then
+                    lines[#lines + 1] = ("groups display [%s] %s"):format(tostring(k), dumpTable(v))
+                end
+            end
+        else
+            lines[#lines + 1] = ("groups GetGroupDisplayInfoByTreeID -> %s"):format(describe(ok, info))
+        end
+    end
+
+    local _, _, classID = UnitClass("player")
+    local specInfo = C_SpecializationInfo
+    if specInfo and specInfo.GetSpecIDs then
+        local ok, ids = pcall(specInfo.GetSpecIDs, classID)
+        lines[#lines + 1] = ("groups GetSpecIDs(%s) -> %s")
+            :format(tostring(classID), ok and type(ids) == "table" and describe(unpack(ids)) or describe(ok, ids))
+        if ok and type(ids) == "table" and type(GetSpecializationInfoByID) == "function" then
+            for _, id in ipairs(ids) do
+                lines[#lines + 1] = ("groups GetSpecializationInfoByID(%s) -> %s")
+                    :format(tostring(id), describe(pcall(GetSpecializationInfoByID, id)))
+            end
+        end
+    end
+end
+
 local function run()
     if InCombatLockdown() then
         print("|cffff8800ElastibarProbe:|r in combat; will run when combat ends.")
@@ -377,6 +440,7 @@ local function run()
     probeTalentTrees(lines)
     probeTraits(lines)
     probeTalentDiscovery(lines)
+    probeTalentGroups(lines)
     table.sort(lines)
     table.sort(missing)
 
