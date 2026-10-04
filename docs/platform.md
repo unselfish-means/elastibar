@@ -28,12 +28,17 @@ toc `16001`):
 - **Macro conditionals can't be detected statically.** An unknown conditional reads as false, and its
   `no` form as true, so they have to be tested in play.
 
+Verified by the 2×2 spike (2026-10-03), with no errors including in combat:
+
+- custom secure buttons for spells, items, and macros (drag and drop, clicks, tooltips);
+- cooldown, item count, usability, and range display;
+- moving a bar and saving its position;
+- spec-name translation and visibility rules applied through `RegisterStateDriver`.
+
 Not yet verified:
 
 - whether `[spec:2]` turns true after switching to an unlocked Secondary spec;
-- whether a Secondary spec's talent config is readable while Primary is active;
-- whether cooldown APIs return "secret" values in combat. Forever shares code with Retail 12.x; the
-  spike reports any update errors.
+- whether a Secondary spec's talent config is readable while Primary is active.
 
 ## Combat lockdown
 
