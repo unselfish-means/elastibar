@@ -387,9 +387,10 @@ local function probeTalentGroups(lines)
         lines[#lines + 1] = ("groups group%s nodes=%d ranks=%d posX=%s..%s")
             :format(tostring(groupID), agg.nodes, agg.ranks, tostring(agg.minX), tostring(agg.maxX))
         if C_Traits.GetGroupCurrencyInfo then
-            local ok, info = pcall(C_Traits.GetGroupCurrencyInfo, configID, groupID)
+            local ok, infos = pcall(C_Traits.GetGroupCurrencyInfo, configID, { groupID })
+            local first = ok and type(infos) == "table" and infos[1]
             lines[#lines + 1] = ("groups group%s GetGroupCurrencyInfo -> %s")
-                :format(tostring(groupID), ok and type(info) == "table" and dumpTable(info) or describe(ok, info))
+                :format(tostring(groupID), type(first) == "table" and dumpTable(first) or describe(ok, infos))
         end
     end
 
@@ -422,6 +423,40 @@ local function probeTalentGroups(lines)
     end
 end
 
+-- Prototype of the lookup Elastibar needs: for each spec group, total ranks
+-- per named talent column (from group display info) and pick the dominant one.
+local function probeSpecTrees(lines)
+    local getConfig = C_SpecializationInfo and C_SpecializationInfo.GetCombatConfigIDForSpecGroup
+    if not (getConfig and C_Traits and C_Traits.GetGroupDisplayInfoByTreeID) then
+        lines[#lines + 1] = "spectree prerequisites missing"
+        return
+    end
+    for specGroup = 1, 2 do
+        local okCfgID, configID = pcall(getConfig, specGroup)
+        lines[#lines + 1] = ("spectree group%d configID -> %s"):format(specGroup, describe(okCfgID, configID))
+        local okCfg, config = pcall(C_Traits.GetConfigInfo, configID)
+        if okCfgID and configID and okCfg and type(config) == "table" and config.treeIDs then
+            local treeID = config.treeIDs[1]
+            local okDisp, columns = pcall(C_Traits.GetGroupDisplayInfoByTreeID, treeID)
+            local ranks = {}
+            local okNodes, nodeIDs = pcall(C_Traits.GetTreeNodes, treeID)
+            for _, nodeID in ipairs(okNodes and type(nodeIDs) == "table" and nodeIDs or {}) do
+                local ok, node = pcall(C_Traits.GetNodeInfo, configID, nodeID)
+                if ok and type(node) == "table" then
+                    for _, groupID in ipairs(node.groupIDs or {}) do
+                        ranks[groupID] = (ranks[groupID] or 0) + (node.ranksPurchased or 0)
+                    end
+                end
+            end
+            for _, col in ipairs(okDisp and type(columns) == "table" and columns or {}) do
+                lines[#lines + 1] = ("spectree group%d column%s %s skillLine=%s ranks=%d")
+                    :format(specGroup, tostring(col.orderIndex), tostring(col.displayName),
+                        tostring(col.skillLineID), ranks[col.groupID] or 0)
+            end
+        end
+    end
+end
+
 local function run()
     if InCombatLockdown() then
         print("|cffff8800ElastibarProbe:|r in combat; will run when combat ends.")
@@ -441,6 +476,7 @@ local function run()
     probeTraits(lines)
     probeTalentDiscovery(lines)
     probeTalentGroups(lines)
+    probeSpecTrees(lines)
     table.sort(lines)
     table.sort(missing)
 
