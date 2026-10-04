@@ -60,6 +60,9 @@ function Bar:ApplyLayout()
                 button = ns.Button.Create(self.frame, function(_, content)
                     if self.record then self.record.buttons[key] = content end
                     self:ApplyEmptySlots()
+                end, function(content, macroIndex)
+                    if not self.record or self.record.scope ~= "account" then return true end
+                    return ns.BarStore.AccountAllows(content, macroIndex, MAX_ACCOUNT_MACROS)
                 end)
                 self.buttons[key] = button
             end
