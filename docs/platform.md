@@ -48,11 +48,15 @@ toc `16001`):
   - `/console` is broken in the beta's chat code. Set the CVar with `SetCVar("taintLog", "1")` after
     login (`/eb taintlog` in the spike); the log is written to `Logs\taint.log`.
   - **While `taintLog` is on, this beta throws unrelated Blizzard errors**: chat errors on XP
-    messages, and possibly the Edit Mode `LootFrame` error on exit. Turn it on only while hunting
-    taint.
-- **Other addons can look like Elastibar problems.** On this beta, MoveAny caused `BuffFrame` errors
-  (on combat and on closing Edit Mode) through secret-value taint, and Details_RaidCheck errors on a
-  missing library. Check `Logs\taint.log` for which addon is named before chasing an error.
+    messages, `BuffFrame` errors in combat and when closing Edit Mode, and possibly the Edit Mode
+    `LootFrame` error on exit. All of them stopped once the spike stopped turning `taintLog` on, with
+    every other addon (including MoveAny) enabled. Turn it on only while hunting taint.
+  - The taint log also named MoveAny for secret-value reads in its own code. Those happened at the
+    same moments as the `BuffFrame` errors, but the errors went away with MoveAny still enabled, so
+    the taint logging itself was the cause.
+- **Unrelated noise**: Details_RaidCheck errors on a missing library (`LibOpenRaid-1.0`); they stop
+  when Details' raid plugin is disabled. Check `Logs\taint.log` for which addon is named before
+  chasing an error.
 - **Macro conditionals can't be detected statically.** An unknown conditional reads as false, and its
   `no` form as true, so they have to be tested in play.
 
