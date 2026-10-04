@@ -503,17 +503,13 @@ local function printMissing()
     for _, line in ipairs(entry.missing) do print("  " .. line) end
 end
 
+-- Runs only on /ebprobe: the conditional check prints "Unknown macro option" for its
+-- made-up control conditional, which is noise at every login.
 local pending = false
 local events = CreateFrame("Frame")
-events:RegisterEvent("PLAYER_ENTERING_WORLD")
 events:RegisterEvent("PLAYER_REGEN_ENABLED")
-events:SetScript("OnEvent", function(self, event)
-    if event == "PLAYER_ENTERING_WORLD" then
-        self:UnregisterEvent("PLAYER_ENTERING_WORLD")
-        pending = not run()
-    elseif pending then
-        pending = not run()
-    end
+events:SetScript("OnEvent", function()
+    if pending then pending = not run() end
 end)
 
 SLASH_ELASTIBARPROBE1 = "/ebprobe"

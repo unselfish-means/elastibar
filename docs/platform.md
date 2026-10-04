@@ -57,8 +57,19 @@ toc `16001`):
 - **Unrelated noise**: Details_RaidCheck errors on a missing library (`LibOpenRaid-1.0`); they stop
   when Details' raid plugin is disabled. Check `Logs\taint.log` for which addon is named before
   chasing an error.
-- **Macro conditionals can't be detected statically.** An unknown conditional reads as false, and its
-  `no` form as true, so they have to be tested in play.
+- **Unknown macro conditionals are reported**: `SecureCmdOptionParse` prints "Unknown macro option:
+  X" to chat for a conditional the client doesn't know, while still evaluating it as false (and its
+  `no` form as true). None of the 29 conditionals the probe checks triggered it, so all are valid
+  on Forever: `combat`, `spec`, `mod`, `group`, `mounted`, `flying`, `flyable`, `advflyable`,
+  `swimming`, `indoors`, `outdoors`, `resting`, `stealth`, `form`, `stance`, `pet`, `dead`,
+  `channeling`, `vehicleui`, `overridebar`, `possessbar`, `petbattle`, `bonusbar`, `actionbar`,
+  `known`. The visibility editor can use the same message to flag typos.
+- **Secure action buttons need `typerelease`.** With `pressAndHoldAction` set, the press runs `type`
+  and the release runs `typerelease`. Elastibar (like Button Forge) drops presses so a mouse click
+  acts once, on release, so both attributes must be set or clicks do nothing.
+- **`ActionButtonTemplate` is a CheckButton**, so clicks toggle its checked glow. Set it from
+  `C_Spell.IsCurrentSpell` / `IsAutoRepeatSpell` after each click and on
+  `CURRENT_SPELL_CAST_CHANGED`.
 
 Verified by the 2×2 spike (2026-10-03), with no errors including in combat:
 
