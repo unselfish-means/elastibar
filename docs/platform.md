@@ -111,6 +111,7 @@ message. Internal updates, such as re-translating a rule, are queued until comba
   ```
   lua tests/conditionals_test.lua
   lua tests/barstore_test.lua
+  lua tests/grid_test.lua
   ```
 
 - **Probe**: `ElastibarProbe` records APIs, templates, conditionals, and talent data per build in

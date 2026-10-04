@@ -84,5 +84,11 @@ check("migrated button 2,2", m.buttons["2,2"].id, 6948)
 check("spike data removed", mchar.spike, nil)
 check("migration runs once", S.MigrateSpike(mdb, mchar), nil)
 
+-- Size clamping
+check("clamp low", S.ClampSize(0), 1)
+check("clamp high", S.ClampSize(40), 12)
+check("clamp rounds", S.ClampSize(3.6), 4)
+check("clamp garbage", S.ClampSize("x"), 1)
+
 print(("%d checks, %d failed"):format(count, failures))
 if failures > 0 then os.exit(1) end

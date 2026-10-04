@@ -12,6 +12,8 @@ SpecTrees.lua
 BarStore.lua
 Button.lua
 Bar.lua
+Grid.lua
+BarSettings.lua
 EditMode.lua
 Bars.lua
 Slash.lua

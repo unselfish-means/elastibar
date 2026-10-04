@@ -17,6 +17,14 @@ local BarStore = {}
 ns.BarStore = BarStore
 
 BarStore.DEFAULTS = { cols = 4, rows = 1, scale = 1, layer = "normal", visibility = "show" }
+BarStore.MAX_SIZE = 12 -- rows and columns are each 1..12
+BarStore.LAYERS = { "behind", "normal", "above", "top" }
+
+-- Rounds and clamps a row or column count to 1..MAX_SIZE.
+function BarStore.ClampSize(n)
+    n = math.floor((tonumber(n) or 1) + 0.5)
+    return math.max(1, math.min(BarStore.MAX_SIZE, n))
+end
 
 local PREFIX = { account = "a", character = "c" }
 
