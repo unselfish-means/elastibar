@@ -179,6 +179,11 @@ SlashCmdList.ELASTIBAR = function(msg)
         printSpecs()
     elseif cmd == "editmode" and ns.EditModeDiagnostics then
         ns.EditModeDiagnostics()
+    elseif cmd == "taintlog" then
+        -- /console is broken in this beta's chat code, so set the CVar directly.
+        local value = rest:lower() == "off" and "0" or "1"
+        local ok, err = pcall(SetCVar, "taintLog", value)
+        ns.Print("taintLog set to %s: %s", value, ok and tostring(GetCVar("taintLog")) or tostring(err))
     elseif cmd == "reset" then
         if InCombatLockdown() then
             ns.Print("Can't move bars in combat.")
@@ -188,6 +193,6 @@ SlashCmdList.ELASTIBAR = function(msg)
         if state().positions then state().positions[layoutKey()] = nil end
         applyPosition()
     else
-        ns.Print("/eb vis <rule>, /eb vis, /eb specs, /eb editmode, /eb reset")
+        ns.Print("/eb vis <rule>, /eb vis, /eb specs, /eb editmode, /eb taintlog [off], /eb reset")
     end
 end
