@@ -273,12 +273,12 @@ local function secretDiagnostics()
 end
 
 -- Record diagnostics once per session so they can be read without copying chat.
--- During the spike, turn the taintLog CVar on at every login (this client resets it on
--- reload) unless /eb taintlog off was used.
+-- After /eb taintlog, turn the taintLog CVar on at every login (this client resets it on
+-- reload). Opt-in only: chat errors appeared while it was on.
 ns.On("PLAYER_ENTERING_WORLD", function()
     if ns.db and not ns.diagnosticsLogged then
         ns.diagnosticsLogged = true
-        if ns.db.taintLog ~= false then pcall(SetCVar, "taintLog", "1") end
+        if ns.db.taintLog == true then pcall(SetCVar, "taintLog", "1") end
         C_Timer.After(2, function()
             ns.EditModeDiagnostics()
             secretDiagnostics()
