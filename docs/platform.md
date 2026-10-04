@@ -14,6 +14,11 @@ toc `16001`):
   `SecureHandler*` templates, `CooldownFrameTemplate`, `BackdropTemplate`, and `ScrollingEditBoxTemplate`.
 - **All eight frame stratas work**, and frame levels go up to 10000.
 - **Blizzard Edit Mode exists**: `EditModeManagerFrame` and `C_EditMode`.
+  - Blizzard's selection overlay (`EditModeSystemSelectionTemplate`) works on addon frames, but its
+    default scripts assume a Blizzard Edit Mode system (`self.system`) and error on hover. Replace
+    its `OnEnter`, `OnLeave`, `OnMouseDown`, and drag scripts.
+- **`ActionButtonTemplate` buttons are natively 45px.** Lay bars out on a 45px grid with a 2px gap
+  (the same values Button Forge uses) and size them with scale, not by resizing buttons.
 - **Spell overlay glow** uses `ActionButtonSpellAlertManager`; `ActionButton_ShowOverlayGlow` is gone.
 - **Macros**: `MAX_ACCOUNT_MACROS` is nil at login (it's defined by the load-on-demand macro UI).
   Account macros are indexes 1–120 and character macros are 121 and up; the spike confirmed this.
