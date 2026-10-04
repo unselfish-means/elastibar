@@ -67,6 +67,12 @@ toc `16001`):
 - **Secure action buttons need `typerelease`.** With `pressAndHoldAction` set, the press runs `type`
   and the release runs `typerelease`. Elastibar (like Button Forge) drops presses so a mouse click
   acts once, on release, so both attributes must be set or clicks do nothing.
+- **The cursor doesn't identify pet actions.** For `"petaction"`, `GetCursorInfo` returns spellbook
+  positions (for example `2, 4` or `0, 15`), not pet bar slots. Watch the pickup calls with
+  `hooksecurefunc` instead: `PickupPetAction(slot)` from the pet bar, and
+  `C_SpellBook.PickupSpellBookItem(index, bank)` from the spellbook (then
+  `C_SpellBook.GetSpellBookItemInfo` for the spell ID and name). Match pet commands such as Attack by
+  name, since they have no spell ID.
 - **`ActionButtonTemplate` is a CheckButton**, so clicks toggle its checked glow. Set it from
   `C_Spell.IsCurrentSpell` / `IsAutoRepeatSpell` after each click and on
   `CURRENT_SPELL_CAST_CHANGED`.
