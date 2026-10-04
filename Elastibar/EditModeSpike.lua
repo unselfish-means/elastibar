@@ -116,6 +116,7 @@ local function openDialog()
 end
 
 local function selectBar()
+    ns.Log("Elastibar bar selected")
     -- Deselect Blizzard's frame so only one thing is selected at a time.
     if EditModeManagerFrame and EditModeManagerFrame.ClearSelectedSystem then
         local ok, err = pcall(EditModeManagerFrame.ClearSelectedSystem, EditModeManagerFrame)
@@ -144,9 +145,14 @@ local function buildSelection()
     -- error on hover without one.
     selection:SetScript("OnEnter", function(self)
         if self.MouseOverHighlight then self.MouseOverHighlight:Show() end
+        -- Name tooltip, like Blizzard's frames show in Edit Mode.
+        GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
+        GameTooltip:SetText("Elastibar", NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b)
+        GameTooltip:Show()
     end)
     selection:SetScript("OnLeave", function(self)
         if self.MouseOverHighlight then self.MouseOverHighlight:Hide() end
+        GameTooltip:Hide()
     end)
     selection:SetScript("OnMouseDown", selectBar)
     selection:SetScript("OnDragStart", function()
@@ -166,6 +172,7 @@ end
 local function onEnter()
     if editModeActive or not spike then return end
     editModeActive = true
+    ns.Log("Edit Mode opened")
     if not selection then buildSelection() end
     selection:Show()
     setHighlight(false)
@@ -175,6 +182,7 @@ end
 local function onExit()
     if not editModeActive then return end
     editModeActive = false
+    ns.Log("Edit Mode closed")
     if selection then selection:Hide() end
     closeDialog()
     if spike then spike.handle:Show() end
@@ -231,4 +239,13 @@ function ns.EditModeDiagnostics()
     ns.Print("  EditModeSystemSettingsDialog: %s", has(EditModeSystemSettingsDialog))
     ns.Print("  active layout: %s", tostring(ns.EditModeLayoutName()))
     ns.Print("  Edit Mode open: %s", tostring(editModeActive))
+    ns.Print("  taintLog CVar: %s", tostring(GetCVar and GetCVar("taintLog")))
 end
+
+-- Record diagnostics once per session so they can be read without copying chat.
+ns.On("PLAYER_ENTERING_WORLD", function()
+    if ns.db and not ns.diagnosticsLogged then
+        ns.diagnosticsLogged = true
+        C_Timer.After(2, ns.EditModeDiagnostics)
+    end
+end)
