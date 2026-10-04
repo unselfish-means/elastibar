@@ -29,6 +29,10 @@ toc `16001`):
   - `C_Traits.GetGroupDisplayInfoByTreeID(treeID)` names the three columns (`displayName`, `groupID`,
     `orderIndex`, and a language-independent `skillLineID`).
   - Each node lists its `groupIDs`; summing `ranksPurchased` by group gives points per tree.
+- **Secret values (as in Retail 12.x).** In combat, cooldown APIs return "secret" values that addon
+  code can't use: `Cooldown:SetCooldown` fails with "Secret values are only allowed during untainted
+  execution". Custom buttons need the secret-safe path (Retail's is a duration object passed to the
+  cooldown frame). Which APIs Forever offers for this is being probed.
 - **Macro conditionals can't be detected statically.** An unknown conditional reads as false, and its
   `no` form as true, so they have to be tested in play.
 
