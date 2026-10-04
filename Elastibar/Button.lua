@@ -50,8 +50,26 @@ function Button.Create(parent, onContentChanged)
     widget:RegisterForClicks("AnyUp", "AnyDown")
     widget:RegisterForDrag("LeftButton")
     clickWrapper:WrapScript(widget, "OnClick", [[ if down then return false end ]])
-    -- CheckButtons toggle their checked glow on click; show "is this active" instead.
-    widget:SetScript("PostClick", function() self:UpdateChecked() end)
+    -- Clicking a button while holding something places it (as on Blizzard's bars), e.g. the
+    -- contents a swap put on the cursor. Before the click, switch the button's action off so
+    -- the click doesn't also use it; after, place the cursor contents. Out of combat only:
+    -- attributes can't change in combat. (Button Forge does the same on this client.)
+    widget:SetScript("PreClick", function(_, _, down)
+        if down or InCombatLockdown() or not GetCursorInfo() then return end
+        self.placing = true
+        widget:SetAttribute("type", nil)
+        widget:SetAttribute("typerelease", nil)
+    end)
+    widget:SetScript("PostClick", function()
+        if self.placing then
+            self.placing = false
+            -- Nothing placed (refused, or this release was already handled as a drop):
+            -- restore the button's own action, which PreClick switched off.
+            if not self:ReceiveCursor() then self:SetContent(self.content) end
+        end
+        -- CheckButtons toggle their checked glow on click; show "is this active" instead.
+        self:UpdateChecked()
+    end)
     if self.hotkey then self.hotkey:SetText("") end
 
     widget:SetScript("OnReceiveDrag", function() self:ReceiveCursor() end)
@@ -167,11 +185,17 @@ local function putOnCursor(content)
     if not ok then ns.Log("couldn't put " .. content.kind .. " on the cursor") end
 end
 
+-- Places the cursor contents on this button. Returns true if something was placed.
 function Button:ReceiveCursor()
     if InCombatLockdown() then
         ns.Print("Can't change buttons in combat.")
-        return
+        return false
     end
+    -- A drag release can arrive as both a drop and a click; handle it once per frame, or the
+    -- second would put the swapped-out contents straight back.
+    local now = GetTime()
+    if self.receivedAt == now then return false end
+    self.receivedAt = now
     local content, detail = contentFromCursor()
     if not content then
         if detail == "petaction-not-on-bar" then
@@ -179,7 +203,7 @@ function Button:ReceiveCursor()
         else
             ns.Print("Can't place '%s' on an Elastibar button yet.", tostring(detail))
         end
-        return
+        return false
     end
     ClearCursor()
     local previous = self.content
@@ -187,6 +211,7 @@ function Button:ReceiveCursor()
     if self.onContentChanged then self.onContentChanged(self, content) end
     -- Swap, like Blizzard's bars: what was here goes onto the cursor instead of being lost.
     if previous then putOnCursor(previous) end
+    return true
 end
 
 -- Shift-drag: put the contents on the cursor and empty the button. Dropping them on another

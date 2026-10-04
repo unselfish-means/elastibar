@@ -29,8 +29,11 @@ Each button holds one spell, item, macro, or pet action.
   - dropping it on a Blizzard action bar places it there (the game handles this);
   - dropping it anywhere else deletes it.
   - Shift-drag works outside Edit Mode, and is refused in combat.
-- **Proposed** (implemented, awaiting confirmation): Dropping onto a button that already holds
-  something swaps the two, as Blizzard's bars do: the old contents go onto the cursor.
+- **Decided**: Dropping onto a button that already holds something swaps the two, as Blizzard's
+  bars do: the old contents go onto the cursor.
+- **Decided**: Clicking a button while holding something places it there (as on Blizzard's bars),
+  without using the button's action. This is how you place what a swap left on the cursor.
+  Out of combat only.
 - **Decided**: Mounts, toys, and pets count as items: they can go on any bar, including account bars.
 - **Open**: Equipment sets weren't discussed.
 
