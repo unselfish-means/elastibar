@@ -20,6 +20,21 @@ BarStore.DEFAULTS = { cols = 4, rows = 1, scale = 1, layer = "normal", visibilit
 BarStore.MAX_SIZE = 12 -- rows and columns are each 1..12
 BarStore.LAYERS = { "behind", "normal", "above", "top" }
 
+-- What an account bar may hold (decided in docs/specs/bars.md): things every character can
+-- use. Items (including toys), mounts, battle pets, and account macros are allowed; spells,
+-- pet actions, and character macros are class- or character-specific and are refused.
+-- macroIndex is the dropped macro's index; account macros are 1..maxAccountMacros.
+BarStore.ACCOUNT_REFUSAL = "Account bars hold items, toys, mounts, pets, and account macros."
+
+function BarStore.AccountAllows(content, macroIndex, maxAccountMacros)
+    local kind = content and content.kind
+    if kind == "item" or kind == "mount" or kind == "battlepet" then return true end
+    if kind == "macro" then
+        return macroIndex ~= nil and macroIndex >= 1 and macroIndex <= (maxAccountMacros or 120)
+    end
+    return false
+end
+
 -- Rounds and clamps a row or column count to 1..MAX_SIZE.
 function BarStore.ClampSize(n)
     n = math.floor((tonumber(n) or 1) + 0.5)

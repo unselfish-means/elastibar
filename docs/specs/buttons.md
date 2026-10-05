@@ -1,6 +1,6 @@
 # Buttons
 
-Each button holds one spell, item, macro, or pet action.
+Each button holds one spell, item or toy, macro, pet action, mount, or battle pet.
 
 ## Placing things on buttons
 
@@ -18,7 +18,7 @@ Each button holds one spell, item, macro, or pet action.
     greyed out, and its tooltip names the action and says the pet isn't summoned.
   - **Open**: Should right-clicking toggle autocast, as on Blizzard's pet bar? Right now
     right-click uses the action, and autocast isn't shown.
-- **Decided**: Account bars accept only items and account macros (see [Bars](bars.md#character-and-account-bars)).
+- **Decided**: Account bars accept only items (including toys), mounts, battle pets, and account macros (see [Bars](bars.md#character-and-account-bars)). Anything else is refused with a message and stays on the cursor.
   Pet actions are class-specific, so they're character-bar only, like spells.
 - **Decided**: Buttons can't be changed in combat.
 - **Proposed**: Macros are stored by name, not by index, because macro indexes shift when macros
@@ -34,7 +34,10 @@ Each button holds one spell, item, macro, or pet action.
 - **Decided**: Clicking a button while holding something places it there (as on Blizzard's bars),
   without using the button's action. This is how you place what a swap left on the cursor.
   Out of combat only.
-- **Decided**: Mounts, toys, and pets count as items: they can go on any bar, including account bars.
+- **Decided**: Mounts, toys, and battle pets count as items: they can go on any bar, including account bars.
+  - Mounts are cast by name (`/cast <mount>`), show the mount spell's icon, cooldown, and usability, and glow while you ride them. The mount journal's "Summon Random Favorite Mount" isn't supported yet.
+  - Battle pets are summoned with `/summonpet` and glow while summoned.
+  - Toys use the secure "toy" action, since they aren't in your bags.
 - **Open**: Equipment sets weren't discussed.
 
 ## What a button shows
