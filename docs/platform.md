@@ -117,3 +117,6 @@ message. Internal updates, such as re-translating a rule, are queued until comba
 - **Probe**: `ElastibarProbe` records APIs, templates, conditionals, and talent data per build in
   `WTF\Account\<account>\SavedVariables\ElastibarProbe.lua`. Re-run it after beta patches and diff
   the results.
+- **GitHub account**: the repo is `unselfish-means/elastibar`. Git pushes as unselfish-means through
+  a repo-local credential helper in `.git/config`, so the active `gh` account doesn't matter for git.
+  `gh` commands do need the token set first: `$env:GH_TOKEN = gh auth token -u puppysnuff`.
