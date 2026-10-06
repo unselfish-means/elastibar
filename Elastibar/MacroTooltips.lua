@@ -14,9 +14,15 @@ ns.MacroTooltips = MacroTooltips
 
 MacroTooltips.MAX_LENGTH = 500
 
--- The table a macro's tooltip lives in, by macro index. Account macros come first.
+-- Account macros come first, then character macros. MAX_ACCOUNT_MACROS isn't defined on
+-- WoW: Forever; its macro list uses 120 account slots, like Retail.
+function MacroTooltips.IsAccountMacro(index, maxAccountMacros)
+    return index <= (maxAccountMacros or MAX_ACCOUNT_MACROS or 120)
+end
+
+-- The table a macro's tooltip lives in, by macro index.
 function MacroTooltips.StoreFor(index, db, charDB, maxAccountMacros)
-    local owner = index <= (maxAccountMacros or 120) and db or charDB
+    local owner = MacroTooltips.IsAccountMacro(index, maxAccountMacros) and db or charDB
     owner.macroTooltips = owner.macroTooltips or {}
     return owner.macroTooltips
 end
@@ -31,7 +37,7 @@ end
 function MacroTooltips.Get(name)
     local index = name and GetMacroIndexByName(name)
     if not index or index == 0 then return nil end
-    return MacroTooltips.StoreFor(index, ns.db, ns.charDB, MAX_ACCOUNT_MACROS)[name]
+    return MacroTooltips.StoreFor(index, ns.db, ns.charDB)[name]
 end
 
 return MacroTooltips

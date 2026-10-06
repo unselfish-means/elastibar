@@ -30,7 +30,7 @@ local function load(name)
     end
     edit:Enable()
     edit:SetText(ns.MacroTooltips.Get(name) or "")
-    local account = GetMacroIndexByName(name) <= MAX_ACCOUNT_MACROS
+    local account = ns.MacroTooltips.IsAccountMacro(GetMacroIndexByName(name))
     owner:SetText(account and "|cffffd100Account macro: every character sees this tooltip.|r"
         or (GREY .. "Character macro: only this character sees it.|r"))
 end
@@ -98,8 +98,7 @@ local function build()
         if not (userInput and macroName) then return end
         local index = GetMacroIndexByName(macroName)
         if index > 0 then
-            ns.MacroTooltips.Set(ns.MacroTooltips.StoreFor(index, ns.db, ns.charDB, MAX_ACCOUNT_MACROS),
-                macroName, self:GetText())
+            ns.MacroTooltips.Set(ns.MacroTooltips.StoreFor(index, ns.db, ns.charDB), macroName, self:GetText())
         end
     end)
 

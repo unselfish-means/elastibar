@@ -14,6 +14,10 @@ local function check(name, got, want)
     end
 end
 
+check("account macro without the global", M.IsAccountMacro(120), true)
+check("character macro without the global", M.IsAccountMacro(121), false)
+check("explicit limit", M.IsAccountMacro(37, 36), false)
+
 local db, charDB = {}, {}
 local account = M.StoreFor(5, db, charDB, 120)
 local char = M.StoreFor(121, db, charDB, 120)
