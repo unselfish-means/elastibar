@@ -4,8 +4,8 @@
 need, size them by dragging their edges in Blizzard's Edit Mode, and decide exactly when each one
 appears, without having to learn macro syntax.
 
-Built for **WoW: Forever (Classic Plus)**. Elastibar is in early development, so expect changes
-between versions.
+Built for **WoW: Forever (Classic Plus)**. Elastibar is in **beta**: it works, but expect changes
+between versions, and please report anything that misbehaves.
 
 ## What it does
 

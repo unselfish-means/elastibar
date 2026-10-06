@@ -23,8 +23,41 @@ files below.
 
 A pushed tag runs [.github/workflows/release.yml](.github/workflows/release.yml), which packages the
 addon with the BigWigs packager (following [.pkgmeta](.pkgmeta)) and uploads it to CurseForge. The
-setup is the shared one in the `curseforge-packaging` runbook in `wow-addons-skill`. CurseForge uploads
-need `## X-Curse-Project-ID` in `Elastibar/Elastibar.toc`, which isn't there yet.
+setup is the shared one in the `curseforge-packaging` runbook in `wow-addons-skill`. The CurseForge
+project ID is `## X-Curse-Project-ID: 1730569` in `Elastibar/Elastibar.toc`.
+
+### Elastibar is in beta
+
+Until the owner says Elastibar is out of beta, **every tag must contain `beta`**, for example
+`1.0.1-beta1`, `1.0.1-beta2`, `1.1.0-beta1`. The packager decides the CurseForge release type only
+from the tag name: a tag with `beta` uploads as a **Beta** file, and a tag without it, such as `1.0.1`,
+uploads as a full **Release** to everyone. A pushed tag can't be cleanly taken back, so check the name
+before pushing.
+
+- `## Version` in the `.toc` is the same string as the tag, so `/reload` shows which beta is
+  installed. Bump it in the PR that changes behavior.
+- To release, from an up-to-date `main` whose `.toc` already has the new version:
+
+  ```powershell
+  git tag -m "Elastibar 1.0.1-beta1" 1.0.1-beta1 origin/main
+  git push origin refs/tags/1.0.1-beta1
+  ```
+
+  The message makes the tag annotated, which the packager needs. Then check the run with
+  `gh run list --workflow release.yml` and the file on CurseForge (type **Beta**, game version
+  WoW: Forever). Release notes are reviewed by the owner before a tag is pushed, as in Reclaim.
+- 1.0.0 was uploaded to CurseForge by hand to create the project, and has no git tag. The first tag's
+  changelog therefore lists every commit since the repo began; replace it on CurseForge with the
+  release notes.
 
 When a release changes what players see, update [README.md](README.md) and paste it into the
 CurseForge project's description.
+
+## CurseForge project
+
+| Field | Value |
+|---|---|
+| Project ID | 1730569 |
+| Description | Paste [README.md](README.md) (choose Markdown in the editor) |
+| Game version | WoW: Forever (Classic Plus), toc `16001` |
+| Release type | Beta, until the owner says otherwise (see above) |
