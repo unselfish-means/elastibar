@@ -37,7 +37,7 @@ Each requirement is tagged:
 
 - **Keybinds**: next version.
 - **Changing a bar's scope** (character ↔ account) after it's created.
-- **Formatted custom macro tooltips**: plain text is proposed for v1.
+- **Formatted custom macro tooltips**: v1 has plain text.
 - **Class spells and character macros on account bars**: rejected on drop for now.
 - **Flyouts and stance buttons.** (Pet actions were added to v1.)
 - **Masque skinning.**

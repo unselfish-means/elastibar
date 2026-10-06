@@ -11,11 +11,13 @@ Conditionals.lua
 RuleEditing.lua
 SpecTrees.lua
 BarStore.lua
+MacroTooltips.lua
 Button.lua
 Bar.lua
 Grid.lua
 BarSettings.lua
 VisibilityEditor.lua
+MacroTooltipEditor.lua
 EditMode.lua
 Bars.lua
 Slash.lua

@@ -51,9 +51,14 @@ Each button holds one spell, item or toy, macro, pet action, mount, or battle pe
 
 - **Decided**: Hovering a spell or item shows its normal game tooltip.
 - **Decided**: Macros can have a **custom tooltip** that you write. Button Forge doesn't offer this.
-  Formatting and storage can wait until the next version if they're hard.
-- **Proposed**: Keep **plain-text** custom tooltips in v1, stored per macro so the text follows the
-  macro to any bar. This is cheap: a text field and a few lines in the hover handler. Formatting
-  (title line, colors) moves to the next version.
-- **Proposed**: A macro with no custom tooltip shows the tooltip of the spell or item it would
+- **Decided**: Custom tooltips are **plain text** in v1. Formatting (title line, colors) moves to the
+  next version.
+- **Decided**: You write it in a box docked to Blizzard's macro window, which follows the selected
+  macro. It's saved as you type, and emptying it removes it.
+- **Decided**: It's stored per macro, so the text follows the macro to any bar: an account macro's
+  tooltip is account-wide, and a character macro's belongs to that character. Like the macro
+  buttons themselves, it follows the macro's name, so renaming a macro leaves its tooltip behind.
+- **Decided**: Hovering a macro with a custom tooltip shows the macro's name and your text only. It
+  replaces the spell's tooltip, which is often misleading for a macro that casts different spells.
+- **Decided**: A macro with no custom tooltip shows the tooltip of the spell or item it would
   currently use (as `#showtooltip` does), falling back to the macro's name.

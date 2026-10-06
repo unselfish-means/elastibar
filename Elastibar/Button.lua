@@ -482,9 +482,21 @@ function Button:ShowTooltip()
             GameTooltip:AddLine("Your pet isn't summoned.", 0.7, 0.7, 0.7, true)
         end
     else
-        -- Custom macro tooltips come later; for now show the macro's name.
-        GameTooltip:SetText(c.name)
-        GameTooltip:AddLine("Macro", 0.7, 0.7, 0.7)
+        -- A custom tooltip replaces everything. Otherwise show what the macro would use right
+        -- now, as #showtooltip does, falling back to the macro's name.
+        local custom = ns.MacroTooltips.Get(c.name)
+        local index = GetMacroIndexByName(c.name)
+        local spell = not custom and index and index > 0 and GetMacroSpell(index)
+        local itemLink = not custom and not spell and index and index > 0 and GetMacroItem and select(2, GetMacroItem(index))
+        if spell then
+            GameTooltip:SetSpellByID(spell)
+        elseif itemLink then
+            GameTooltip:SetHyperlink(itemLink)
+        else
+            GameTooltip:SetText(c.name)
+            if custom then GameTooltip:AddLine(custom, 1, 1, 1, true) end
+            GameTooltip:AddLine("Macro", 0.7, 0.7, 0.7)
+        end
     end
     GameTooltip:Show()
 end
