@@ -11,3 +11,5 @@ ignore:
   - docs
   - scripts
   - tests
+  - CLAUDE.md
+  - README.md
