@@ -292,7 +292,21 @@ local function build()
     end)
 end
 
--- Opens the editor for a bar, docked to the right of anchor (the settings panel).
+-- Docks beside the settings panel: to its right if there's room, otherwise to its left.
+-- Without this, clamping to the screen pushes the editor back over the panel.
+function VisibilityEditor.Dock()
+    if not VisibilityEditor.IsOpen() then return end
+    local anchor = frame.anchor
+    local roomRight = UIParent:GetWidth() - (anchor:GetRight() or 0)
+    frame:ClearAllPoints()
+    if roomRight >= WIDTH + 4 or roomRight >= (anchor:GetLeft() or 0) then
+        frame:SetPoint("TOPLEFT", anchor, "TOPRIGHT", 4, 0)
+    else
+        frame:SetPoint("TOPRIGHT", anchor, "TOPLEFT", -4, 0)
+    end
+end
+
+-- Opens the editor for a bar, docked beside anchor (the settings panel).
 function VisibilityEditor.Open(bar, anchor)
     if not frame then build() end
     current = bar
@@ -302,9 +316,9 @@ function VisibilityEditor.Open(bar, anchor)
     frame.statusTop = -layoutSnippets(frame.snippetsTop - 18) + 4
     status:ClearAllPoints()
     status:SetPoint("TOPLEFT", 14, -frame.statusTop)
-    frame:ClearAllPoints()
-    frame:SetPoint("TOPLEFT", anchor, "TOPRIGHT", 4, 0)
+    frame.anchor = anchor
     frame:Show()
+    VisibilityEditor.Dock()
     local text = record.visibilityDraft or record.visibility or "show"
     edit:SetText(text)
     edit:SetCursorPosition(#text)

@@ -102,7 +102,10 @@ local function build()
     panel:SetMovable(true)
     panel:RegisterForDrag("LeftButton")
     panel:SetScript("OnDragStart", panel.StartMoving)
-    panel:SetScript("OnDragStop", panel.StopMovingOrSizing)
+    panel:SetScript("OnDragStop", function(self)
+        self:StopMovingOrSizing()
+        ns.VisibilityEditor.Dock() -- the editor may need to switch sides
+    end)
     panel:SetBackdrop({
         bgFile = "Interface\\Buttons\\WHITE8x8",
         edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
