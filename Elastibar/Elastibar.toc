@@ -2,7 +2,7 @@
 ## Title: Elastibar
 ## Notes: Extra action bars you can stretch, place, and show on your own rules.
 ## Author: archmagethews
-## Version: 0.1.0-dev
+## Version: 1.0.0
 ## SavedVariables: ElastibarDB
 ## SavedVariablesPerCharacter: ElastibarCharDB
 
