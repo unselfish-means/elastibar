@@ -49,6 +49,7 @@ jobs:
 
       - uses: BigWigsMods/packager@e50a250f8705041e40f2fa1ddcb280a686d65aa0 # v2.6.1
         with:
-          # Name the file and label it with the bare tag (the packager would add
-          # a game-type suffix such as "-forever").
-          args: -n "{package-name}-{project-version}:{project-version}"
+          # "<file name>:<CurseForge display name>". Both are "<Addon>-<tag>", for
+          # example Reclaim-1.0.3. Without the part after ":", the packager's
+          # default display name is the tag plus a game-type suffix ("1.0.3-forever").
+          args: -n "{package-name}-{project-version}:{package-name}-{project-version}"
