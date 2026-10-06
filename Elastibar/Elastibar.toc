@@ -8,12 +8,14 @@
 
 Core.lua
 Conditionals.lua
+RuleEditing.lua
 SpecTrees.lua
 BarStore.lua
 Button.lua
 Bar.lua
 Grid.lua
 BarSettings.lua
+VisibilityEditor.lua
 EditMode.lua
 Bars.lua
 Slash.lua
