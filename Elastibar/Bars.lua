@@ -77,10 +77,16 @@ function Bars.Rename(record, name)
 end
 
 -- Sets a bar's visibility rule and reports the translation and the result right now.
-function Bars.SetVisibility(record, rule)
-    if refuseInCombat("change visibility") then return end
+-- The rule editor shows those itself, so it passes quiet. Returns true if the rule was set.
+function Bars.SetVisibility(record, rule, quiet)
+    if refuseInCombat("change visibility") then return false end
     record.visibility = rule
-    Bars.ReportVisibility(record)
+    if not quiet then
+        Bars.ReportVisibility(record)
+    elseif live[record.id] then
+        live[record.id]:ApplyVisibility(ns.SpecTrees.Get())
+    end
+    return true
 end
 
 function Bars.ReportVisibility(record)

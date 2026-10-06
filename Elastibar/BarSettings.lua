@@ -50,8 +50,7 @@ local function makeSlider(label, minValue, maxValue, step, format, onChange)
     return row
 end
 
--- Rename and visibility use Blizzard's popup with an edit box. The visibility box is a
--- stand-in until the rule editor (build step 5).
+-- Rename uses Blizzard's popup with an edit box. Visibility has its own editor.
 local function popupEditBox(popup)
     return popup.editBox or popup.EditBox
 end
@@ -63,17 +62,6 @@ StaticPopupDialogs.ELASTIBAR_RENAME = {
     OnShow = function(self) popupEditBox(self):SetText(self.data.name); popupEditBox(self):HighlightText() end,
     OnAccept = function(self) ns.Bars.Rename(self.data, popupEditBox(self):GetText()) end,
     EditBoxOnEnterPressed = function(box) local p = box:GetParent(); ns.Bars.Rename(p.data, box:GetText()); p:Hide() end,
-    EditBoxOnEscapePressed = function(box) box:GetParent():Hide() end,
-    timeout = 0, whileDead = true, hideOnEscape = true,
-}
-
-StaticPopupDialogs.ELASTIBAR_VISIBILITY = {
-    text = "Visibility rule for %s\n(for example: [combat] show; hide)",
-    button1 = ACCEPT, button2 = CANCEL,
-    hasEditBox = true, editBoxWidth = 350,
-    OnShow = function(self) popupEditBox(self):SetText(self.data.visibility or "show") end,
-    OnAccept = function(self) ns.Bars.SetVisibility(self.data, popupEditBox(self):GetText()) end,
-    EditBoxOnEnterPressed = function(box) local p = box:GetParent(); ns.Bars.SetVisibility(p.data, box:GetText()); p:Hide() end,
     EditBoxOnEscapePressed = function(box) box:GetParent():Hide() end,
     timeout = 0, whileDead = true, hideOnEscape = true,
 }
@@ -114,7 +102,10 @@ local function build()
     panel:SetMovable(true)
     panel:RegisterForDrag("LeftButton")
     panel:SetScript("OnDragStart", panel.StartMoving)
-    panel:SetScript("OnDragStop", panel.StopMovingOrSizing)
+    panel:SetScript("OnDragStop", function(self)
+        self:StopMovingOrSizing()
+        ns.VisibilityEditor.Dock() -- the editor may need to switch sides
+    end)
     panel:SetBackdrop({
         bgFile = "Interface\\Buttons\\WHITE8x8",
         edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
@@ -176,7 +167,7 @@ local function build()
         return button
     end
     actionButton("Visibility", 12, function(bar)
-        StaticPopup_Show("ELASTIBAR_VISIBILITY", bar.record.name, nil, bar.record)
+        ns.VisibilityEditor.Open(bar, panel)
     end)
     actionButton("Rename", 94, function(bar)
         StaticPopup_Show("ELASTIBAR_RENAME", nil, nil, bar.record)
@@ -212,9 +203,11 @@ function BarSettings.Open(bar)
     panel:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", frame:GetRight() * ratio + 8, frame:GetTop() * ratio + 8)
     BarSettings.Refresh(bar)
     panel:Show()
+    if ns.VisibilityEditor.IsOpen() then ns.VisibilityEditor.Open(bar, panel) end
 end
 
 function BarSettings.Close()
     current = nil
+    ns.VisibilityEditor.Close()
     if panel then panel:Hide() end
 end
