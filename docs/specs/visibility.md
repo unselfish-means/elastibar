@@ -77,12 +77,30 @@ goes straight to the game and won't work.
 
 This is a headline feature, because Button Forge's editor is the main thing users complain about.
 
+- **Decided**: The editor is its own window, docked beside the bar settings panel. It opens from the
+  panel's Visibility button and closes with the panel.
 - **Decided**: Guidance in the editor itself: preset buttons, and clickable snippets for common
   conditionals, so nobody has to look up the syntax.
-- **Decided**: The editor never loses your work. Closing it, clicking outside it, or pressing Escape
-  keeps a draft.
-- **Proposed**: A live preview, updated as you type: "Right now: shown".
-- **Proposed**: When spec names are translated, the editor shows the translation, e.g.
-  `spec:beast → spec:1`, so a hidden bar is never a mystery.
-- **Proposed**: Unknown or ambiguous spec names are flagged in the editor.
-- **Proposed**: A multi-line editor (`ScrollingEditBoxTemplate`, which works on Forever).
+  - Snippets are grouped: When (combat, mounted, stealth, …), Target (exists, harm, help, pet,
+    group, …), Keys (Shift, Ctrl, Alt), and Spec (`spec:1`, `spec:2`, and the character's own tree
+    names). Each has a tooltip saying what it means.
+  - **Decided**: Snippets are context-aware. Inside `[ ]` a snippet joins the conditions there with a
+    comma. Outside, it starts a new `[snippet] show; ` clause at the start of the cursor's clause, and
+    an Always rule becomes `[snippet] show; hide`. The cursor stays inside the new brackets, so
+    clicking `combat` then `mod:shift` builds `[combat,mod:shift] show; hide`.
+  - The preset matching the rule is highlighted. Anything else is Custom.
+- **Decided**: Edits are a draft until you press Apply. Revert goes back to the applied rule.
+- **Decided**: The editor never loses your work. The draft is saved with every keystroke, so closing
+  the editor, pressing Escape, or reloading the UI keeps it.
+- **Decided**: A live preview of the draft, without applying it: "Right now: shown". It also follows
+  combat, modifier keys, and targets as they change.
+  - The preview only runs when every condition in the draft is one the game knows, because the game
+    prints "Unknown macro option" to chat for anything else, including half-typed words. Otherwise
+    the editor says why it can't preview: an unknown condition, unmatched brackets, or a clause that
+    doesn't end in show or hide.
+- **Decided**: When the draft uses spec names, the editor shows the rule the game receives, e.g.
+  `[spec:1] show; hide`, so a hidden bar is never a mystery.
+- **Decided**: Unknown or ambiguous spec names are flagged, and so is `spec:2` while Secondary is
+  locked.
+- **Decided**: A multi-line edit box, so long rules can be written one clause per line.
+- Apply is refused in combat, like every other bar change.
