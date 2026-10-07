@@ -149,7 +149,10 @@ local function build()
         local name = selectedName()
         if name ~= macroName then load(name) end
     end)
-    panel:SetScript("OnShow", function() load(selectedName()) end)
+    panel:SetScript("OnShow", function()
+        refreshPosition() -- the options panel can change it too
+        load(selectedName())
+    end)
     load(selectedName())
 end
 

@@ -21,6 +21,17 @@
   - **Open edit mode** button.
 - **Decided**: Per-bar settings (visibility, layer, scale, size, rename) stay in Edit Mode's bar settings
   panel rather than being duplicated in the options panel.
+- **Decided**: It's **one page**: General, then Bars. The bar list scrolls when it's long.
+  - Settings are saved as soon as they change; there's no Okay or Apply.
+  - "Button tooltips" applies to Elastibar's buttons only. Blizzard's bars keep their own behavior.
+  - The bar list shows each bar's name, a Character or Account badge, columns × rows, and its
+    visibility preset name (or Custom).
+  - **Edit** closes the settings window, opens Edit Mode, and selects that bar, so its settings
+    panel opens. **Open Edit Mode** does the same with nothing selected. Neither works in combat.
+  - **Delete** is immediate, with no confirmation, as everywhere else.
+  - **New character bar** and **New account bar** create a bar with the next free name.
+- **Decided**: The minimap icon and addon compartment checkboxes are added with the icon itself
+  (the next build step), not before.
 
 ## Minimap icon
 

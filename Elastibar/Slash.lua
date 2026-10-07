@@ -1,4 +1,4 @@
--- Slash commands. Stand-ins until the options panel and the visibility editor exist.
+-- Slash commands. /eb on its own opens the options panel.
 --
 --   /eb list                       list bars with their numbers
 --   /eb new [account] [name]       create a character bar (or an account bar)
@@ -98,7 +98,9 @@ SlashCmdList.ELASTIBAR = function(msg)
     local handler = commands[cmd:lower()]
     if handler then
         handler(rest)
+    elseif cmd == "" then
+        ns.Options.Open()
     else
-        ns.Print("/eb list, /eb new [account] [name], /eb delete <bar>, /eb rename <bar> <name>, /eb vis <bar> [rule], /eb grid [px]")
+        ns.Print("/eb (options), /eb list, /eb new [account] [name], /eb delete <bar>, /eb rename <bar> <name>, /eb vis <bar> [rule], /eb grid [px]")
     end
 end

@@ -254,6 +254,14 @@ local function hook()
     end
 end
 
+-- Opens Blizzard's Edit Mode, with one of our bars selected if given (from the options panel).
+function EditMode.Open(bar)
+    if InCombatLockdown() or not EditModeManagerFrame then return end
+    if not EditModeManagerFrame:IsShown() then ShowUIPanel(EditModeManagerFrame) end
+    onEnter() -- in case the Enter callback hasn't run yet
+    if bar and attached[bar] then selectBar(bar) end
+end
+
 -- Combat ends any drag (secure frames can't move in combat).
 ns.On("PLAYER_REGEN_DISABLED", stopDrag)
 

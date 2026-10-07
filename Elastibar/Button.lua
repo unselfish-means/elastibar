@@ -475,7 +475,7 @@ end
 
 function Button:ShowTooltip()
     local c = self.content
-    if not c then return end
+    if not c or not ns.Options.ButtonTooltipsShown() then return end
     GameTooltip:SetOwner(self.widget, "ANCHOR_RIGHT")
     if c.kind == "spell" then
         GameTooltip:SetSpellByID(c.id)
