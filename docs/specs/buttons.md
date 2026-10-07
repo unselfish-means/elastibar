@@ -45,7 +45,10 @@ Each button holds one spell, item or toy, macro, pet action, mount, or battle pe
 - The icon. Macros show their own icon.
 - A cooldown swipe. Macros show the cooldown of the spell they'd currently cast.
 - The item count for stackable items.
-- Dimmed when unusable, and tinted red when the target is out of range.
+- Dimmed when unusable, and tinted red when the target is out of range. For a macro, range is
+  checked against the unit its matching `/cast` or `/use` line would hit right now, as on
+  Blizzard's bars: `[mod:alt,@player]` with Alt held is never red, and `@mouseover` checks the
+  mouseover.
 
 ## Tooltips
 

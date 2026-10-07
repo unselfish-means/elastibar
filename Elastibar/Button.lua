@@ -323,6 +323,21 @@ function Button:DisplaySpell()
     end
 end
 
+-- The unit a macro's spell would land on right now, from its first /cast or /use line whose
+-- conditions match, such as [mod:alt,@player]. Nil means the usual target.
+local function macroUnit(name)
+    local index = GetMacroIndexByName(name)
+    local body = index and index > 0 and select(3, GetMacroInfo(index))
+    for line in (body or ""):gmatch("[^\r\n]+") do
+        local command, args = line:match("^%s*/(%a+)%s+(.+)$")
+        command = command and command:lower()
+        if command == "cast" or command == "use" then
+            local result, unit = SecureCmdOptionParse(args)
+            if result and result ~= "" then return unit end
+        end
+    end
+end
+
 function Button:UpdateIcon()
     local c, texture, greyed = self.content, nil, false
     if c and c.kind == "spell" then
@@ -411,7 +426,9 @@ function Button:UpdateUsable()
     local spellID = self:DisplaySpell()
     if spellID then
         usable = C_Spell.IsSpellUsable(spellID)
-        inRange = C_Spell.IsSpellInRange(spellID, "target")
+        -- Range is checked against whoever the spell would land on, as Blizzard's bars do.
+        local unit = c.kind == "macro" and macroUnit(c.name) or "target"
+        if unit ~= "player" then inRange = C_Spell.IsSpellInRange(spellID, unit) end
     elseif c and c.kind == "item" and isToy(c.id) then
         usable = not C_ToyBox.IsToyUsable or C_ToyBox.IsToyUsable(c.id) -- toys aren't in bags
     elseif c and c.kind == "item" then
