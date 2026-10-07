@@ -11,6 +11,8 @@
     - Show in addon compartment.
     - (Showing or hiding empty slots is a per-bar setting in Edit Mode; see the layout spec.)
     - Button tooltips: always, out of combat only, or never.
+    - Custom macro tooltip text: above (default) or below the game's tooltip. The same setting as
+      in the tooltip box beside the macro window (see the buttons spec).
     - Grid size for snapping.
   - **Bars**: a list of every bar this character sees, showing name, scope badge, size, and visibility
     preset.

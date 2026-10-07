@@ -45,15 +45,32 @@ Each button holds one spell, item or toy, macro, pet action, mount, or battle pe
 - The icon. Macros show their own icon.
 - A cooldown swipe. Macros show the cooldown of the spell they'd currently cast.
 - The item count for stackable items.
-- Dimmed when unusable, and tinted red when the target is out of range.
+- Dimmed when unusable, and tinted red when the target is out of range. For a macro, range is
+  checked against the unit its matching `/cast` or `/use` line would hit right now, as on
+  Blizzard's bars: `[mod:alt,@player]` with Alt held is never red, and `@mouseover` checks the
+  mouseover.
 
 ## Tooltips
 
 - **Decided**: Hovering a spell or item shows its normal game tooltip.
 - **Decided**: Macros can have a **custom tooltip** that you write. Button Forge doesn't offer this.
-  Formatting and storage can wait until the next version if they're hard.
-- **Proposed**: Keep **plain-text** custom tooltips in v1, stored per macro so the text follows the
-  macro to any bar. This is cheap: a text field and a few lines in the hover handler. Formatting
-  (title line, colors) moves to the next version.
-- **Proposed**: A macro with no custom tooltip shows the tooltip of the spell or item it would
-  currently use (as `#showtooltip` does), falling back to the macro's name.
+- **Decided**: Custom tooltips are **plain text** in v1. Formatting (title line, colors) moves to the
+  next version.
+- **Decided**: You write it in a box docked to Blizzard's macro window, which follows the selected
+  macro. It's saved as you type, and emptying it removes it.
+- **Decided**: It's stored per macro, so the text follows the macro to any bar: an account macro's
+  tooltip is account-wide, and a character macro's belongs to that character. Like the macro
+  buttons themselves, it follows the macro's name, so renaming a macro leaves its tooltip behind.
+- **Decided**: Hovering a macro shows the tooltip of the spell or item it would currently use (as
+  `#showtooltip` does), falling back to the macro's name. A custom tooltip is added to it, in pale
+  green, with a pale green bar between the two.
+  - This changed from replacing the spell's tooltip, after in-game testing.
+- **Decided**: You choose whether custom text goes **above** (the default) or **below** the game's
+  tooltip. It's one account-wide setting for every macro, set in the tooltip box beside the macro
+  window, and later also in the options panel.
+  - A tooltip can only grow at the bottom, so "above" reads the game's lines back and rebuilds the
+    tooltip with the text first, keeping each line's color and the title's font. In combat the
+    game's text can be secret and unreadable; then the custom text goes below instead.
+- **Decided**: Custom tooltips also show on Blizzard's own action bars, added under the game's
+  tooltip for that macro in the same way. Elastibar adds them with a post-hook on
+  `GameTooltip:SetAction`, so Blizzard's secure buttons aren't touched.

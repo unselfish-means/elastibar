@@ -2,7 +2,7 @@
 ## Title: Elastibar
 ## Notes: Extra action bars you can stretch, place, and show on your own rules.
 ## Author: archmagethews
-## Version: 1.0.1-beta1
+## Version: 1.1.0-beta1
 ## X-Curse-Project-ID: 1730569
 ## SavedVariables: ElastibarDB
 ## SavedVariablesPerCharacter: ElastibarCharDB
@@ -12,11 +12,13 @@ Conditionals.lua
 RuleEditing.lua
 SpecTrees.lua
 BarStore.lua
+MacroTooltips.lua
 Button.lua
 Bar.lua
 Grid.lua
 BarSettings.lua
 VisibilityEditor.lua
+MacroTooltipEditor.lua
 EditMode.lua
 Bars.lua
 Slash.lua
