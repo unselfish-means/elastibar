@@ -23,7 +23,8 @@ between versions, and please report anything that misbehaves.
 - **Holds anything you'd put on an action bar.** Spells, items, toys, macros, mounts, battle pets,
   and pet actions such as Attack and Follow. Drag them on from your spellbook, bags, macro window, or
   pet bar. Shift-drag a button to pick its contents up. Buttons show cooldowns, item counts, and
-  range, just like Blizzard's.
+  range, just like Blizzard's. A macro's range follows whoever it would cast on, so
+  `[mod:alt,@player]` isn't shown out of range while you hold Alt.
 
 ## Show bars only when you need them
 
@@ -44,6 +45,18 @@ Every bar has a **visibility rule**, and the rule editor makes it painless:
 Rules use WoW's own macro conditions, so the game shows and hides your bars in combat without any
 errors.
 
+## Your own macro tooltips
+
+Write a tooltip for any macro, such as "Hold Shift for Frost Trap", in the **Elastibar tooltip**
+box that opens beside Blizzard's macro window (`/macro`).
+
+- It shows when you hover the macro on an Elastibar bar **and** on Blizzard's own action bars,
+  together with the tooltip of the spell or item the macro would use.
+- Choose whether your text goes **above** (the default) or **below** the game's tooltip. A thin
+  green line separates the two.
+- An account macro's tooltip is shared by all your characters, and a character macro's belongs to
+  that character. Your text is saved as you type.
+
 ## Commands
 
 `/eb` and `/elastibar` do the same thing.
@@ -63,3 +76,4 @@ For `<bar>`, use its number from `/eb list` or a one-word bar name.
 
 - Bars can't be created, changed, or deleted in combat. That's a game rule for action buttons.
 - Deleting a bar is immediate. Its buttons and settings are gone.
+- A macro's tooltip is tied to the macro's name, so renaming the macro leaves the tooltip behind.
