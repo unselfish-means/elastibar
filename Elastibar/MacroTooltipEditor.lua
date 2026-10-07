@@ -37,7 +37,7 @@ end
 
 local function build()
     panel = CreateFrame("Frame", "ElastibarMacroTooltipEditor", MacroFrame, "BackdropTemplate")
-    panel:SetSize(WIDTH, 232)
+    panel:SetSize(WIDTH, 294)
     panel:SetPoint("TOPLEFT", MacroFrame, "TOPRIGHT", 4, 0)
     panel:SetClampedToScreen(true)
     panel:EnableMouse(true)
@@ -56,10 +56,10 @@ local function build()
     sub:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -3)
     sub:SetWidth(WIDTH - 28)
     sub:SetJustifyH("LEFT")
-    sub:SetText("Shown when you hover this macro on an Elastibar bar.")
+    sub:SetText("Shown when you hover this macro on Elastibar and Blizzard bars.")
 
     local box = CreateFrame("Frame", nil, panel, "BackdropTemplate")
-    box:SetPoint("TOPLEFT", 14, -54)
+    box:SetPoint("TOPLEFT", 14, -64)
     box:SetSize(WIDTH - 28, 100)
     box:SetBackdrop({
         bgFile = "Interface\\Buttons\\WHITE8x8",
@@ -106,9 +106,37 @@ local function build()
     hint:SetPoint("TOPLEFT", box, "BOTTOMLEFT", 0, -6)
     hint:SetWidth(WIDTH - 28)
     hint:SetJustifyH("LEFT")
-    hint:SetText("Saved as you type. Leave it empty to show the spell or item the macro uses.")
+    hint:SetText("Saved as you type. Empty it to remove it.")
+    -- Above or below the game's tooltip: one setting for every macro.
+    local goes = panel:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    goes:SetPoint("TOPLEFT", hint, "BOTTOMLEFT", 0, -12)
+    goes:SetText("Your text goes")
+    local positionButtons = {}
+    local function refreshPosition()
+        for position, button in pairs(positionButtons) do
+            if ns.MacroTooltips.Position() == position then button:LockHighlight() else button:UnlockHighlight() end
+        end
+    end
+    local x = 0
+    for _, position in ipairs({ "above", "below" }) do
+        local button = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
+        button:SetSize(58, 20)
+        button:SetPoint("LEFT", goes, "RIGHT", 6 + x, 0)
+        button:SetText(position == "above" and "Above" or "Below")
+        button:SetScript("OnClick", function()
+            ns.MacroTooltips.SetPosition(position)
+            refreshPosition()
+        end)
+        positionButtons[position] = button
+        x = x + 60
+    end
+    local rest = panel:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+    rest:SetPoint("TOPLEFT", goes, "BOTTOMLEFT", 0, -8)
+    rest:SetText("the game's tooltip, for every macro.")
+    refreshPosition()
+
     owner = panel:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    owner:SetPoint("TOPLEFT", hint, "BOTTOMLEFT", 0, -6)
+    owner:SetPoint("TOPLEFT", rest, "BOTTOMLEFT", 0, -10)
     owner:SetWidth(WIDTH - 28)
     owner:SetJustifyH("LEFT")
 
