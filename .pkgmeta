@@ -1,0 +1,15 @@
+# Packaging rules for the BigWigs packager (.github/workflows/release.yml), which
+# runs on every pushed tag and uploads the result to CurseForge.
+# The addon lives in a subfolder, so move it up to be the package root.
+package-as: Elastibar
+
+move-folders:
+  Elastibar/Elastibar: Elastibar
+
+ignore:
+  - ElastibarProbe
+  - docs
+  - scripts
+  - tests
+  - CLAUDE.md
+  - README.md
