@@ -7,7 +7,6 @@ local _, ns = ...
 local Options = {}
 ns.Options = Options
 
-Options.TOOLTIP_MODES = { { "always", "Always" }, { "nocombat", "Out of combat only" }, { "never", "Never" } }
 local POSITIONS = { { "above", "Above the game's tooltip" }, { "below", "Below the game's tooltip" } }
 local GRID_MIN, GRID_MAX = 4, 100
 local ROW_HEIGHT, LIST_HEIGHT = 26, 234
@@ -15,12 +14,6 @@ local ROW_HEIGHT, LIST_HEIGHT = 26, 234
 local page, category, list, content, empty
 local rows = {}
 local refreshers = {}
-
--- Whether Elastibar's buttons show tooltips right now, by the "Button tooltips" setting.
-function Options.ButtonTooltipsShown()
-    local mode = ns.db and ns.db.buttonTooltips or "always"
-    return mode == "always" or (mode == "nocombat" and not InCombatLockdown())
-end
 
 local function heading(text, anchor, y)
     local fs = page:CreateFontString(nil, "OVERLAY", "GameFontNormal")
@@ -178,11 +171,11 @@ local function build()
     version:SetText(getMetadata and getMetadata("Elastibar", "Version") or "")
 
     local general = heading("General", title, -18)
-    local tooltips = label("Button tooltips", general, -18)
-    choice(tooltips, Options.TOOLTIP_MODES,
-        function() return ns.db.buttonTooltips or "always" end,
-        function(mode) ns.db.buttonTooltips = mode end)
-    local position = label("Macro tooltip text", tooltips, -16)
+    local tooltips = label("Show macro tooltip text", general, -18)
+    choice(tooltips, ns.MacroTooltips.SHOWN_MODES,
+        function() return ns.db.macroTooltipShown or "always" end,
+        function(mode) ns.db.macroTooltipShown = mode end)
+    local position = label("Macro tooltip text goes", tooltips, -16)
     choice(position, POSITIONS, ns.MacroTooltips.Position, ns.MacroTooltips.SetPosition)
     local grid = label("Snapping grid", position, -16)
     slider(grid)

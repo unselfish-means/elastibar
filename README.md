@@ -61,8 +61,8 @@ box that opens beside Blizzard's macro window (`/macro`).
 
 Open **Options › AddOns › Elastibar**, or type `/eb`. One page holds:
 
-- **Button tooltips**: always, out of combat only, or never.
-- **Macro tooltip text**: above or below the game's tooltip.
+- **Macro tooltip text**: show it always, out of combat only, or never, and put it above or
+  below the game's tooltip.
 - **Snapping grid** size for moving bars in Edit Mode.
 - **Your bars**: every bar this character sees, with buttons to edit (opens Edit Mode with that
   bar selected) or delete it, and to create a new character or account bar.

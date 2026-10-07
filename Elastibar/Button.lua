@@ -475,8 +475,14 @@ end
 
 function Button:ShowTooltip()
     local c = self.content
-    if not c or not ns.Options.ButtonTooltipsShown() then return end
-    GameTooltip:SetOwner(self.widget, "ANCHOR_RIGHT")
+    if not c then return end
+    -- Anchored like Blizzard's action buttons: the game's tooltip anchor with Enhanced
+    -- Tooltips on (the default), otherwise beside the button.
+    if GetCVar("UberTooltips") == "1" and GameTooltip_SetDefaultAnchor then
+        GameTooltip_SetDefaultAnchor(GameTooltip, self.widget)
+    else
+        GameTooltip:SetOwner(self.widget, "ANCHOR_RIGHT")
+    end
     if c.kind == "spell" then
         GameTooltip:SetSpellByID(c.id)
     elseif c.kind == "item" and isToy(c.id) and GameTooltip.SetToyByItemID then

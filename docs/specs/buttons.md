@@ -53,6 +53,8 @@ Each button holds one spell, item or toy, macro, pet action, mount, or battle pe
 ## Tooltips
 
 - **Decided**: Hovering a spell or item shows its normal game tooltip.
+- **Decided**: Tooltips are anchored like Blizzard's action buttons: at the game's tooltip anchor
+  with Enhanced Tooltips on (the default), otherwise beside the button.
 - **Decided**: Macros can have a **custom tooltip** that you write. Button Forge doesn't offer this.
 - **Decided**: Custom tooltips are **plain text** in v1. Formatting (title line, colors) moves to the
   next version.

@@ -10,8 +10,10 @@
     - Show minimap icon.
     - Show in addon compartment.
     - (Showing or hiding empty slots is a per-bar setting in Edit Mode; see the layout spec.)
-    - Button tooltips: always, out of combat only, or never.
-    - Custom macro tooltip text: above (default) or below the game's tooltip. The same setting as
+    - Show macro tooltip text: always, out of combat only, or never. This is Elastibar's custom
+      text only, on Elastibar and Blizzard bars; the game's own tooltip always shows.
+      - Changed after in-game testing: it was "Button tooltips", which hid the whole tooltip.
+    - Macro tooltip text goes above (default) or below the game's tooltip. The same setting as
       in the tooltip box beside the macro window (see the buttons spec).
     - Grid size for snapping.
   - **Bars**: a list of every bar this character sees, showing name, scope badge, size, and visibility
@@ -23,7 +25,6 @@
   panel rather than being duplicated in the options panel.
 - **Decided**: It's **one page**: General, then Bars. The bar list scrolls when it's long.
   - Settings are saved as soon as they change; there's no Okay or Apply.
-  - "Button tooltips" applies to Elastibar's buttons only. Blizzard's bars keep their own behavior.
   - The bar list shows each bar's name, a Character or Account badge, columns × rows, and its
     visibility preset name (or Custom).
   - **Edit** closes the settings window, opens Edit Mode, and selects that bar, so its settings
