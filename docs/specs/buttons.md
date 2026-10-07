@@ -58,7 +58,10 @@ Each button holds one spell, item or toy, macro, pet action, mount, or battle pe
 - **Decided**: It's stored per macro, so the text follows the macro to any bar: an account macro's
   tooltip is account-wide, and a character macro's belongs to that character. Like the macro
   buttons themselves, it follows the macro's name, so renaming a macro leaves its tooltip behind.
-- **Decided**: Hovering a macro with a custom tooltip shows the macro's name and your text only. It
-  replaces the spell's tooltip, which is often misleading for a macro that casts different spells.
-- **Decided**: A macro with no custom tooltip shows the tooltip of the spell or item it would
-  currently use (as `#showtooltip` does), falling back to the macro's name.
+- **Decided**: Hovering a macro shows the tooltip of the spell or item it would currently use (as
+  `#showtooltip` does), falling back to the macro's name. A custom tooltip is added underneath,
+  after a blank line, in pale green.
+  - This changed from replacing the spell's tooltip, after in-game testing.
+- **Decided**: Custom tooltips also show on Blizzard's own action bars, added under the game's
+  tooltip for that macro in the same way. Elastibar adds them with a post-hook on
+  `GameTooltip:SetAction`, so Blizzard's secure buttons aren't touched.

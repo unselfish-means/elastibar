@@ -40,4 +40,21 @@ function MacroTooltips.Get(name)
     return MacroTooltips.StoreFor(index, ns.db, ns.charDB)[name]
 end
 
+-- Adds a macro's text under whatever the tooltip already shows, after a blank line.
+function MacroTooltips.AddTo(tooltip, name)
+    local text = MacroTooltips.Get(name)
+    if not text then return end
+    tooltip:AddLine(" ")
+    tooltip:AddLine(text, 0.61, 1, 0.69, true)
+    tooltip:Show()
+end
+
+-- Blizzard's action bars show a macro with GameTooltip:SetAction. A post-hook adds the text
+-- there too, without touching the secure buttons.
+if GameTooltip and hooksecurefunc then
+    hooksecurefunc(GameTooltip, "SetAction", function(tooltip, slot)
+        if GetActionInfo(slot) == "macro" then MacroTooltips.AddTo(tooltip, GetActionText(slot)) end
+    end)
+end
+
 return MacroTooltips
