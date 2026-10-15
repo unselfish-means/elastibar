@@ -29,10 +29,20 @@ An example, a Priest's "Target" bar:
 The game receives `[help,nodead] 1; [help,dead] 2; [harm,combat] 3; [harm,nocombat] 4; hide`.
 Spec names in conditions are translated as in visibility rules.
 
-## Editing pages in Edit Mode
+## Editing pages
 
-- **Decided**: Selecting a bar in Edit Mode shows every page, stacked below the bar. Each page has a
-  label on its left saying when it shows, such as "2 · Friendly, dead".
+- **Decided**: Selecting a bar in Edit Mode opens its pages: every page is shown, stacked below the
+  bar, on a dark panel titled "Pages: <bar>". Each page has a label on its left saying when it shows,
+  such as "2 · Friendly, dead".
+- **Decided**: The game won't open the spellbook in Edit Mode, so pages can also be opened outside it:
+  - **Use spellbook**, below the pages in Edit Mode, keeps that bar's pages open once Edit Mode
+    closes;
+  - `/eb pages <bar>` opens a bar's pages, or closes them if they're open.
+
+  Outside Edit Mode the pages work the same way, and the page editor docks beside the panel. **Done**
+  closes them, and so do entering combat and opening Edit Mode. Only one bar's pages are open at a
+  time.
+- **Decided**: Hidden empty slots are shown while a bar's pages are open, as in Edit Mode.
 - **Decided**: You fill a page by dropping things on it, as on the bar itself. While something is on
   the cursor, the Edit Mode overlay lets drops through to the buttons.
 - **Decided**: The label of the page showing right now has a gold border, so you can change target

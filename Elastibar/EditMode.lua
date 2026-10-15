@@ -227,6 +227,9 @@ local function onEnter()
     if active then return end
     active = true
     for bar in pairs(attached) do
+        if ns.PageStack.IsOpen(bar) then ns.PageStack.Close(bar) end -- opened outside Edit Mode
+    end
+    for bar in pairs(attached) do
         bar.overlay:Show()
         setHighlight(bar, false)
         bar:ApplyEmptySlots() -- hidden empty slots show while editing
@@ -237,12 +240,14 @@ local function onExit()
     if not active then return end
     active = false
     stopDrag()
+    local keepOpen = ns.PageStack.TakePending() -- "Use spellbook" was pressed
     deselect()
     -- Blizzard's ShowHighlighted also shows the overlay, so hide overlays after deselecting.
     for bar in pairs(attached) do
         bar.overlay:Hide()
         bar:ApplyEmptySlots()
     end
+    if keepOpen then ns.PageStack.Open(keepOpen) end
 end
 
 local function hook()

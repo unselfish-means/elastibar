@@ -123,6 +123,7 @@ function Bar:SetExpanded(expanded)
     self.frame:SetAttribute("expanded", expanded and true or nil)
     self:AnchorPages()
     self:ShowPages()
+    self:ApplyEmptySlots()
 end
 
 local function layoutKey()
@@ -179,10 +180,11 @@ end
 
 -- "Hide empty slots" (per bar): empty buttons become invisible. Alpha isn't protected,
 -- unlike Show/Hide on secure buttons, so this also works in combat, and invisible buttons
--- still accept drops. They reappear while something is on the cursor or Edit Mode is open.
+-- still accept drops. They reappear while something is on the cursor, Edit Mode is open, or
+-- the bar's pages are open for editing.
 function Bar:ApplyEmptySlots()
     if not self.record then return end
-    local revealed = not self.record.hideEmpty or GetCursorInfo() ~= nil
+    local revealed = not self.record.hideEmpty or GetCursorInfo() ~= nil or self.expanded
         or (ns.EditMode and ns.EditMode.IsActive())
     self:EachButton(function(button)
         button.widget:SetAlpha((button.content or revealed) and 1 or 0)

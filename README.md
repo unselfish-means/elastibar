@@ -53,6 +53,8 @@ and attacks when it's hostile. If no page matches, the bar stays hidden.
 
 - Select a bar in Edit Mode and all its pages appear, stacked below it. Drop spells straight onto
   any of them.
+- The spellbook won't open in Edit Mode, so press **Use spellbook** and close Edit Mode: the pages
+  stay open until you press **Done**. `/eb pages <bar>` opens them directly.
 - Click a page's label to choose when it shows: target friendly, hostile, or none; alive or dead;
   in combat or out. One click each. For anything else, type the conditions yourself, such as
   `[help,mod:shift]`.
@@ -81,6 +83,7 @@ box that opens beside Blizzard's macro window (`/macro`).
 | `/eb new [account] [name]` | Create a character bar, or an account bar |
 | `/eb rename <bar> <name>` | Rename a bar |
 | `/eb delete <bar>` | Delete a bar (there's no confirmation) |
+| `/eb pages <bar>` | Open or close a bar's pages for editing, outside Edit Mode |
 | `/eb vis <bar> [rule]` | Show or set a bar's visibility rule |
 | `/eb grid [px]` | Show or set the snapping grid size |
 

@@ -209,7 +209,8 @@ function PageEditor.Open(bar, index)
     if not frame then build() end
     ns.VisibilityEditor.Close() -- they share the spot beside the panel
     current, currentIndex = bar, index
-    frame.anchor = ns.BarSettings.Panel()
+    local panel = ns.BarSettings.Panel()
+    frame.anchor = panel and panel:IsShown() and panel or ns.PageStack.Anchor(bar) -- outside Edit Mode
     frame:Show()
     PageEditor.Dock()
     edit:ClearFocus()

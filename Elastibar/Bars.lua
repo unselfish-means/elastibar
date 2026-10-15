@@ -60,6 +60,7 @@ function Bars.Delete(record)
     local bar = live[record.id]
     if bar then
         if ns.EditMode then ns.EditMode.Detach(bar) end
+        if ns.PageStack.IsOpen(bar) then ns.PageStack.Close(bar) end
         bar:Release()
         live[record.id] = nil
     end
