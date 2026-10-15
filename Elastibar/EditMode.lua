@@ -50,14 +50,21 @@ end
 
 local function deselect()
     ns.BarSettings.Close()
-    if selected then setHighlight(selected, false) end
+    if selected then
+        setHighlight(selected, false)
+        ns.PageStack.Hide(selected)
+    end
     selected = nil
 end
 EditMode.Deselect = deselect
 
 local function selectBar(bar)
-    if selected and selected ~= bar then setHighlight(selected, false) end
+    if selected and selected ~= bar then
+        setHighlight(selected, false)
+        ns.PageStack.Hide(selected)
+    end
     selected = bar
+    ns.PageStack.Show(bar) -- every page, stacked below the bar
     -- Deselect Blizzard's frame so only one thing is selected at a time.
     if EditModeManagerFrame and EditModeManagerFrame.ClearSelectedSystem then
         pcall(EditModeManagerFrame.ClearSelectedSystem, EditModeManagerFrame)
@@ -253,6 +260,15 @@ local function hook()
         if EditModeManagerFrame.SelectSystem then hooksecurefunc(EditModeManagerFrame, "SelectSystem", deselect) end
     end
 end
+
+-- While something is on the cursor, overlays let the mouse through, so it can be dropped on
+-- the bar's buttons in Edit Mode.
+ns.On("CURSOR_CHANGED", function()
+    local holding = GetCursorInfo() ~= nil
+    for bar in pairs(attached) do
+        if bar.overlay then bar.overlay:EnableMouse(not holding) end
+    end
+end)
 
 -- Combat ends any drag (secure frames can't move in combat).
 ns.On("PLAYER_REGEN_DISABLED", stopDrag)
