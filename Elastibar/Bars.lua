@@ -166,7 +166,8 @@ for _, event in ipairs({ "SPELL_UPDATE_COOLDOWN", "BAG_UPDATE_COOLDOWN", "SPELL_
     "BAG_UPDATE_DELAYED", "PLAYER_TARGET_CHANGED", "ACTIONBAR_UPDATE_COOLDOWN",
     "CURRENT_SPELL_CAST_CHANGED", "START_AUTOREPEAT_SPELL", "STOP_AUTOREPEAT_SPELL",
     "PET_BAR_UPDATE", "PET_BAR_UPDATE_COOLDOWN", "PET_BAR_UPDATE_USABLE", "UNIT_PET", "PET_UI_UPDATE",
-    "COMPANION_UPDATE", "PET_JOURNAL_LIST_UPDATE", "TOYS_UPDATED" }) do
+    "COMPANION_UPDATE", "PET_JOURNAL_LIST_UPDATE", "TOYS_UPDATED",
+    "PLAYER_REGEN_ENABLED" }) do -- cooldowns read as secret in combat show properly once it ends
     ns.On(event, function()
         for _, bar in pairs(live) do bar:UpdateButtons() end
     end)

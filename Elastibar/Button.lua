@@ -361,12 +361,63 @@ function Button:UpdateIcon()
     self.icon:SetShown(texture ~= nil)
 end
 
+-- The item a button should show the cooldown of: its item, or the item its macro would use.
+function Button:DisplayItem()
+    local c = self.content
+    if not c then return nil end
+    if c.kind == "item" then return c.id end
+    if c.kind == "macro" and GetMacroItem then
+        local index = GetMacroIndexByName(c.name)
+        local link = index and index > 0 and select(2, GetMacroItem(index))
+        return link and tonumber(link:match("item:(%d+)")) or nil
+    end
+end
+
 -- In combat, cooldown numbers are "secret": addon code can't pass them to SetCooldown.
 -- Spells use a duration object instead, which the cooldown frame accepts as-is.
 local itemSecretLogged, petSecretLogged = false, false
 
+local function isSecret(...)
+    if not issecretvalue then return false end
+    for i = 1, select("#", ...) do
+        if issecretvalue((select(i, ...))) then return true end
+    end
+    return false
+end
+
+-- Items have no duration API. Secret numbers still go into a duration object; failing that,
+-- the item's use spell usually shares its cooldown. Logs once which way worked.
+local function setItemCooldown(cooldown, itemID)
+    local start, duration, enable = C_Item.GetItemCooldown(itemID)
+    if isSecret(start, duration, enable) then
+        local how = "none"
+        if C_DurationUtil and C_DurationUtil.CreateDuration and pcall(function()
+            local object = C_DurationUtil.CreateDuration()
+            object:SetTimeFromStart(start, duration)
+            cooldown:SetCooldownFromDurationObject(object)
+        end) then
+            how = "duration object"
+        else
+            local spellID = C_Item.GetItemSpell and select(2, C_Item.GetItemSpell(itemID))
+            local object = spellID and C_Spell.GetSpellCooldownDuration(spellID)
+            if object then
+                cooldown:SetCooldownFromDurationObject(object)
+                how = "item spell"
+            end
+        end
+        if not itemSecretLogged then
+            itemSecretLogged = true
+            ns.Log("item cooldown values are secret; shown with: " .. how)
+        end
+    elseif enable and enable ~= 0 and duration and duration > 0 then
+        cooldown:SetCooldown(start, duration)
+    else
+        cooldown:Clear()
+    end
+end
+
 function Button:UpdateCooldown()
-    local c, spellID = self.content, self:DisplaySpell()
+    local c, spellID, itemID = self.content, self:DisplaySpell(), self:DisplayItem()
     if c and c.kind == "petaction" then
         local start, duration, enable = GetPetActionCooldown(c.slot)
         if issecretvalue and issecretvalue(start) then
@@ -390,17 +441,11 @@ function Button:UpdateCooldown()
         else
             self.cooldown:Clear()
         end
-    elseif c and c.kind == "item" then
-        local start, duration, enable = C_Item.GetItemCooldown(c.id)
-        if issecretvalue and issecretvalue(start) then
-            -- No item duration API on this client; record what we see and leave the swipe as is.
-            if not itemSecretLogged then
-                itemSecretLogged = true
-                ns.Log("item cooldown values are secret in combat; swipe left unchanged")
-            end
-            return
-        end
-        if enable then
+    elseif itemID then
+        setItemCooldown(self.cooldown, itemID)
+    elseif c and c.kind == "battlepet" and C_PetJournal.GetPetCooldownByGUID then
+        local start, duration, enable = C_PetJournal.GetPetCooldownByGUID(c.guid)
+        if not isSecret(start, duration, enable) and enable and enable ~= 0 and duration and duration > 0 then
             self.cooldown:SetCooldown(start, duration)
         else
             self.cooldown:Clear()
