@@ -43,7 +43,8 @@ Each button holds one spell, item or toy, macro, pet action, mount, or battle pe
 ## What a button shows
 
 - The icon. Macros show their own icon.
-- A cooldown swipe. Macros show the cooldown of the spell they'd currently cast.
+- A cooldown swipe on everything a button can hold: spells, items, toys, mounts, battle pets, pet
+  actions, and macros. Macros show the cooldown of the spell or item they'd currently use.
 - The item count for stackable items.
 - Dimmed when unusable, and tinted red when the target is out of range. For a macro, range is
   checked against the unit its matching `/cast` or `/use` line would hit right now, as on

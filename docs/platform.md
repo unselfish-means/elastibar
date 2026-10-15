@@ -35,8 +35,10 @@ toc `16001`):
   - `C_Spell.GetSpellCooldownDuration(spellID)` returns a duration object, which goes to
     `Cooldown:SetCooldownFromDurationObject`. `C_Spell.GetSpellChargeDuration` and
     `C_ActionBar.Get*Duration` also exist.
-  - There's **no item equivalent** (`C_Item` has no `*Duration` functions). Whether item cooldowns are
-    secret in combat is being checked; the spike logs it.
+  - There's **no item equivalent** (`C_Item` has no `*Duration` functions). If item cooldowns read
+    as secret, Elastibar puts them in a `C_DurationUtil.CreateDuration` object, falling back to the
+    item's use spell (`C_Item.GetItemSpell`), and logs once which worked ("item cooldown values are
+    secret; shown with: ..."). Not yet confirmed in game. Every button redraws when combat ends.
   - `issecretvalue`, `C_Secrets.Should*BeSecret`, and `C_DurationUtil.CreateDuration` exist.
 - **`C_Item.IsItemInRange` is protected in combat.** Calling it is a blocked action ("Interface action
   failed because of an AddOn"), so item range can only be checked out of combat.
@@ -105,8 +107,8 @@ message. Internal updates, such as re-translating a rule, are queued until comba
 
 - **Deploy**: `scripts/deploy.ps1` links every addon folder (a folder containing a matching `.toc`)
   into the beta client's `Interface\AddOns`. Edits are live after `/reload`.
-- **Tests**: pure-Lua logic has standalone tests. Run them with any Lua 5.1-compatible interpreter
-  from the repo root:
+- **Tests**: pure-Lua logic has standalone tests. Run them from the repo root with Lua 5.1 (the
+  game's version) or Lua 5.4, which also passes them (`winget install DEVCOM.Lua` installs 5.4):
 
   ```
   lua tests/conditionals_test.lua
@@ -114,6 +116,7 @@ message. Internal updates, such as re-translating a rule, are queued until comba
   lua tests/grid_test.lua
   lua tests/ruleediting_test.lua
   lua tests/macrotooltips_test.lua
+  lua tests/pages_test.lua
   ```
 
 - **Probe**: `ElastibarProbe` records APIs, templates, conditionals, and talent data per build in

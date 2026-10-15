@@ -45,6 +45,22 @@ Every bar has a **visibility rule**, and the rule editor makes it painless:
 Rules use WoW's own macro conditions, so the game shows and hides your bars in combat without any
 errors.
 
+## Pages: one bar, different buttons for different moments
+
+A bar can hold several **pages** of buttons, and shows the first page whose condition matches. One
+"Target" bar can show heals when your target is a living friend, a resurrection when it's a dead one,
+and attacks when it's hostile. If no page matches, the bar stays hidden.
+
+- Select a bar in Edit Mode and all its pages appear, stacked below it. Drop spells straight onto
+  any of them.
+- The spellbook won't open in Edit Mode, so press **Use spellbook** and close Edit Mode: the pages
+  stay open until you press **Done**. `/eb pages <bar>` opens them directly.
+- Click a page's label to choose when it shows: target friendly, hostile, or none; alive or dead;
+  in combat or out. One click each. For anything else, type the conditions yourself, such as
+  `[help,mod:shift]`.
+- The page showing right now is outlined in gold, so you can try a target and see what you'd get.
+- Pages switch in combat, just like Blizzard's own bars.
+
 ## Your own macro tooltips
 
 Write a tooltip for any macro, such as "Hold Shift for Frost Trap", in the **Elastibar tooltip**
@@ -67,6 +83,7 @@ box that opens beside Blizzard's macro window (`/macro`).
 | `/eb new [account] [name]` | Create a character bar, or an account bar |
 | `/eb rename <bar> <name>` | Rename a bar |
 | `/eb delete <bar>` | Delete a bar (there's no confirmation) |
+| `/eb pages <bar>` | Open or close a bar's pages for editing, outside Edit Mode |
 | `/eb vis <bar> [rule]` | Show or set a bar's visibility rule |
 | `/eb grid [px]` | Show or set the snapping grid size |
 
