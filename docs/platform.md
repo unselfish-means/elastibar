@@ -38,7 +38,9 @@ toc `16001`):
   - There's **no item equivalent** (`C_Item` has no `*Duration` functions). If item cooldowns read
     as secret, Elastibar puts them in a `C_DurationUtil.CreateDuration` object, falling back to the
     item's use spell (`C_Item.GetItemSpell`), and logs once which worked ("item cooldown values are
-    secret; shown with: ..."). Not yet confirmed in game. Every button redraws when combat ends.
+    secret; shown with: ..."). Every button redraws when combat ends. Item cooldowns were confirmed
+    working in game (2026-10-17), and that log line hadn't appeared, so the secret path is still
+    untested.
   - `issecretvalue`, `C_Secrets.Should*BeSecret`, and `C_DurationUtil.CreateDuration` exist.
 - **`C_Item.IsItemInRange` is protected in combat.** Calling it is a blocked action ("Interface action
   failed because of an AddOn"), so item range can only be checked out of combat.
