@@ -38,15 +38,24 @@ function Button.Create(parent, onContentChanged, accepts)
     sequence = sequence + 1
     local name = "ElastibarButton" .. sequence
     local widget = CreateFrame("CheckButton", name, parent, "ActionButtonTemplate, SecureActionButtonTemplate")
-    if widget.TextOverlayContainer then widget.TextOverlayContainer:SetFrameLevel(widget:GetFrameLevel() + 1) end
+    local overlay = widget.TextOverlayContainer
+    if overlay then overlay:SetFrameLevel(widget:GetFrameLevel() + 1) end
     widget.action = 10000 -- keep ActionButtonTemplate code away from real action slots
+
+    -- The template may keep its texts on TextOverlayContainer rather than the button.
+    local count = _G[name .. "Count"] or widget.Count or (overlay and overlay.Count)
+    if not count then
+        count = (overlay or widget):CreateFontString(nil, "OVERLAY", "NumberFontNormal")
+        count:SetPoint("BOTTOMRIGHT", widget, "BOTTOMRIGHT", -2, 2)
+        count:SetJustifyH("RIGHT")
+    end
 
     local self = setmetatable({
         widget = widget,
         icon = _G[name .. "Icon"] or widget.icon,
         cooldown = _G[name .. "Cooldown"] or widget.cooldown,
-        count = _G[name .. "Count"] or widget.Count,
-        hotkey = _G[name .. "HotKey"] or widget.HotKey,
+        count = count,
+        hotkey = _G[name .. "HotKey"] or widget.HotKey or (overlay and overlay.HotKey),
         onContentChanged = onContentChanged,
         accepts = accepts,
     }, Button)
@@ -455,14 +464,19 @@ function Button:UpdateCooldown()
     end
 end
 
+-- Like Blizzard's bars: stackable and consumable items always show how many you have, even
+-- 1 or 0; other items only when you carry more than one. Macros show the item they'd use.
+-- Toys aren't in your bags, so they have no count.
 function Button:UpdateCount()
-    local c = self.content
-    local text = ""
-    if c and c.kind == "item" then
-        local n = C_Item.GetItemCount(c.id)
-        if n and n > 1 then text = tostring(n) end
+    local c, itemID, text = self.content, self:DisplayItem(), ""
+    if itemID and not (c.kind == "item" and isToy(itemID)) then
+        local n = C_Item.GetItemCount(itemID, false, true) or 0 -- includeUses: items with charges
+        local stacks = C_Item.GetItemMaxStackSizeByID and (C_Item.GetItemMaxStackSizeByID(itemID) or 1) > 1
+        if stacks or C_Item.IsConsumableItem(itemID) or n > 1 then
+            text = n > 9999 and "*" or tostring(n)
+        end
     end
-    if self.count then self.count:SetText(text) end
+    self.count:SetText(text)
 end
 
 -- Dim unusable buttons and tint out-of-range ones red.
