@@ -491,7 +491,9 @@ function Button:UpdateUsable()
     elseif c and c.kind == "item" and isToy(c.id) then
         usable = not C_ToyBox.IsToyUsable or C_ToyBox.IsToyUsable(c.id) -- toys aren't in bags
     elseif c and c.kind == "item" then
-        usable = C_Item.IsUsableItem(c.id)
+        -- Greyed only when you have none, so items without a use (or not usable right now)
+        -- still look normal. includeUses: items with charges.
+        usable = (C_Item.GetItemCount(c.id, false, true) or 0) > 0
         -- IsItemInRange is protected in combat on this client (calling it is a blocked action).
         if not InCombatLockdown() then inRange = C_Item.IsItemInRange(c.id, "target") end
     elseif c and c.kind == "petaction" then
