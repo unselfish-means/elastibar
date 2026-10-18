@@ -104,7 +104,8 @@ local function build()
     panel:SetScript("OnDragStart", panel.StartMoving)
     panel:SetScript("OnDragStop", function(self)
         self:StopMovingOrSizing()
-        ns.VisibilityEditor.Dock() -- the editor may need to switch sides
+        ns.VisibilityEditor.Dock() -- the editors may need to switch sides
+        ns.PageEditor.Dock()
     end)
     panel:SetBackdrop({
         bgFile = "Interface\\Buttons\\WHITE8x8",
@@ -197,6 +198,7 @@ function BarSettings.Open(bar)
     if not panel then build() end
     if current == bar and panel:IsShown() then return end -- keep it where it is (or was dragged)
     current = bar
+    ns.PageEditor.Close() -- it was editing another bar's page
     local frame = bar.frame
     local ratio = frame:GetEffectiveScale() / UIParent:GetEffectiveScale()
     panel:ClearAllPoints()
@@ -209,5 +211,11 @@ end
 function BarSettings.Close()
     current = nil
     ns.VisibilityEditor.Close()
+    ns.PageEditor.Close()
     if panel then panel:Hide() end
+end
+
+-- The panel the editors dock beside.
+function BarSettings.Panel()
+    return panel
 end

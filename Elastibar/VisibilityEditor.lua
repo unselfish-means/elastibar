@@ -309,6 +309,7 @@ end
 -- Opens the editor for a bar, docked beside anchor (the settings panel).
 function VisibilityEditor.Open(bar, anchor)
     if not frame then build() end
+    ns.PageEditor.Close() -- they share the spot beside the panel
     current = bar
     specInfo = ns.SpecTrees.Get()
     local record = bar.record
