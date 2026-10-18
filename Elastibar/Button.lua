@@ -482,20 +482,20 @@ end
 -- Dim unusable buttons and tint out-of-range ones red.
 function Button:UpdateUsable()
     local c, usable, inRange = self.content, true, nil
-    local spellID = self:DisplaySpell()
+    local spellID, itemID = self:DisplaySpell(), self:DisplayItem()
+    -- Range is checked against whoever it would land on, as Blizzard's bars do.
+    local unit = c and c.kind == "macro" and macroUnit(c.name) or "target"
     if spellID then
         usable = C_Spell.IsSpellUsable(spellID)
-        -- Range is checked against whoever the spell would land on, as Blizzard's bars do.
-        local unit = c.kind == "macro" and macroUnit(c.name) or "target"
         if unit ~= "player" then inRange = C_Spell.IsSpellInRange(spellID, unit) end
     elseif c and c.kind == "item" and isToy(c.id) then
-        usable = not C_ToyBox.IsToyUsable or C_ToyBox.IsToyUsable(c.id) -- toys aren't in bags
-    elseif c and c.kind == "item" then
-        -- Greyed only when you have none, so items without a use (or not usable right now)
-        -- still look normal. includeUses: items with charges.
-        usable = (C_Item.GetItemCount(c.id, false, true) or 0) > 0
+        usable = true -- a toy you own never runs out
+    elseif itemID then
+        -- Items, and macros that use one, are greyed only when you have none, so items without
+        -- a use (or not usable right now) still look normal. includeUses: items with charges.
+        usable = (C_Item.GetItemCount(itemID, false, true) or 0) > 0
         -- IsItemInRange is protected in combat on this client (calling it is a blocked action).
-        if not InCombatLockdown() then inRange = C_Item.IsItemInRange(c.id, "target") end
+        if unit ~= "player" and not InCombatLockdown() then inRange = C_Item.IsItemInRange(itemID, unit) end
     elseif c and c.kind == "petaction" then
         local info = petInfo(c.slot)
         usable = info ~= nil and GetPetActionSlotUsable(c.slot)

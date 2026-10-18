@@ -50,7 +50,8 @@ Each button holds one spell, item or toy, macro, pet action, mount, or battle pe
   one. Items with charges count their charges. Macros show the count of the item they'd use. Toys
   have no count.
 - Dimmed when unusable, and tinted red when the target is out of range. An item is dimmed only when
-  you have none of it, so items with no use, or none right now, still look normal. For a macro, range is
+  you have none of it, so items with no use, or none right now, still look normal. A macro that uses
+  an item follows the same rule, and a toy you own is never dimmed. For a macro, range is
   checked against the unit its matching `/cast` or `/use` line would hit right now, as on
   Blizzard's bars: `[mod:alt,@player]` with Alt held is never red, and `@mouseover` checks the
   mouseover.
