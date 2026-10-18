@@ -21,6 +21,7 @@ BarSettings.lua
 VisibilityEditor.lua
 PageStack.lua
 PageEditor.lua
+SpellbookTab.lua
 MacroTooltipEditor.lua
 EditMode.lua
 Bars.lua

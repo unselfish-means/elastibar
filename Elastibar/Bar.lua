@@ -118,8 +118,17 @@ function Bar:CurrentPage()
     return tonumber(self.frame:GetAttribute("state-page"))
 end
 
+-- While expanded the bar is shown whatever its visibility rule says, so a bar shown only
+-- in combat can still be edited; collapsing hands the rule back to the game.
 function Bar:SetExpanded(expanded)
+    local was = self.expanded
     self.expanded = expanded and true or false
+    if self.expanded and not was then
+        UnregisterStateDriver(self.frame, "visibility")
+        self.frame:Show()
+    elseif was and not self.expanded and self.record then
+        self:ApplyVisibility(ns.SpecTrees.Get())
+    end
     self.frame:SetAttribute("expanded", expanded and true or nil)
     self:AnchorPages()
     self:ShowPages()

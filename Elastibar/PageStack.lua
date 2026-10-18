@@ -65,8 +65,20 @@ local function build(bar)
     stack.holder = holder
 
     stack.title = holder:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    stack.title:SetPoint("BOTTOMLEFT", bar.frame, "TOPLEFT", LEFT, 8)
     stack.title:SetJustifyH("LEFT")
+
+    -- Outside Edit Mode, arrows step through your bars without closing the pages.
+    local function arrow(text, delta)
+        local button = CreateFrame("Button", nil, holder, "UIPanelButtonTemplate")
+        button:SetSize(24, 20)
+        button:SetText(text)
+        button:SetScript("OnClick", function() PageStack.Step(bar, delta) end)
+        return button
+    end
+    stack.prev, stack.next = arrow("<", -1), arrow(">", 1)
+    stack.prev:SetPoint("BOTTOMLEFT", bar.frame, "TOPLEFT", LEFT, 5)
+    stack.position = holder:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+    stack.position:SetPoint("LEFT", stack.next, "RIGHT", 6, 0)
 
     local footer = CreateFrame("Frame", nil, holder)
     stack.footer = footer
@@ -134,6 +146,24 @@ function PageStack.Refresh(bar)
     local pages = bar.record.pages
     local always = ns.Pages.FirstAlways(pages)
     stack.title:SetText("Pages: " .. bar.record.name)
+    stack.title:ClearAllPoints()
+    local standalone = stack.mode == "standalone"
+    stack.prev:SetShown(standalone)
+    stack.next:SetShown(standalone)
+    stack.position:SetShown(standalone)
+    if standalone then
+        local records = ns.BarStore.List(ns.db, ns.charDB)
+        local at = 1
+        for i, record in ipairs(records) do
+            if record == bar.record then at = i end
+        end
+        stack.title:SetPoint("LEFT", stack.prev, "RIGHT", 6, 0)
+        stack.next:ClearAllPoints()
+        stack.next:SetPoint("LEFT", stack.title, "RIGHT", 6, 0)
+        stack.position:SetText(("%d of %d bars"):format(at, #records))
+    else
+        stack.title:SetPoint("BOTTOMLEFT", bar.frame, "TOPLEFT", LEFT, 8)
+    end
     for index, page in ipairs(pages) do
         local label = stack.labels[index] or makeLabel(stack)
         stack.labels[index] = label
@@ -210,12 +240,45 @@ function PageStack.Open(bar)
     end
     if openBar and openBar ~= bar then PageStack.Close(openBar) end
     openBar = bar
+    ns.charDB.lastPagesBar = bar.record.id
     show(bar, "standalone")
+    if PageStack.OnChange then PageStack.OnChange() end
 end
 
 function PageStack.Close(bar)
     if openBar == bar then openBar = nil end
     hide(bar)
+    if PageStack.OnChange then PageStack.OnChange() end
+end
+
+-- Opens the next (delta 1) or previous (-1) bar's pages, wrapping around.
+function PageStack.Step(bar, delta)
+    local records = ns.BarStore.List(ns.db, ns.charDB)
+    for i, record in ipairs(records) do
+        if record == bar.record then
+            local target = ns.Bars.Get(records[(i - 1 + delta) % #records + 1].id)
+            if target and target ~= bar then PageStack.Open(target) end
+            return
+        end
+    end
+end
+
+-- Opens the pages of the bar edited last, or the first bar; closes them if they're open.
+-- Returns false if there are no bars.
+function PageStack.Toggle()
+    if openBar then
+        PageStack.Close(openBar)
+        return true
+    end
+    local records = ns.BarStore.List(ns.db, ns.charDB)
+    local bar = ns.Bars.Get(ns.charDB.lastPagesBar or "") or (records[1] and ns.Bars.Get(records[1].id))
+    if not bar then return false end
+    PageStack.Open(bar)
+    return true
+end
+
+function PageStack.AnyOpen()
+    return openBar ~= nil
 end
 
 function PageStack.IsOpen(bar)

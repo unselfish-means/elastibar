@@ -35,6 +35,8 @@ Spec names in conditions are translated as in visibility rules.
   bar, on a dark panel titled "Pages: <bar>". Each page has a label on its left saying when it shows,
   such as "2 · Friendly, dead".
 - **Decided**: The game won't open the spellbook in Edit Mode, so pages can also be opened outside it:
+  - an **Elastibar pages** toggle on the edge of the spellbook opens the pages of the bar you edited
+    last (or your first bar), and reads **Close pages** while they're open;
   - **Use spellbook**, below the pages in Edit Mode, keeps that bar's pages open once Edit Mode
     closes;
   - `/eb pages <bar>` opens a bar's pages, or closes them if they're open.
@@ -42,7 +44,10 @@ Spec names in conditions are translated as in visibility rules.
   Outside Edit Mode the pages work the same way, and the page editor docks beside the panel. **Done**
   closes them, and so do entering combat and opening Edit Mode. Only one bar's pages are open at a
   time.
-- **Decided**: Hidden empty slots are shown while a bar's pages are open, as in Edit Mode.
+- **Decided**: Outside Edit Mode, **<** and **>** beside the bar's name step through your bars
+  (wrapping around), with "2 of 3 bars" beside them, so one toggle reaches every bar.
+- **Decided**: While a bar's pages are open, the bar is shown even if its visibility rule would hide
+  it, and hidden empty slots are shown, as in Edit Mode. The rule applies again when they close.
 - **Decided**: You fill a page by dropping things on it, as on the bar itself. While something is on
   the cursor, the Edit Mode overlay lets drops through to the buttons.
 - **Decided**: The label of the page showing right now has a gold border, so you can change target

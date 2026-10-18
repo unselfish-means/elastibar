@@ -22,8 +22,8 @@ between versions, and please report anything that misbehaves.
   or delete it.
 - **Holds anything you'd put on an action bar.** Spells, items, toys, macros, mounts, battle pets,
   and pet actions such as Attack and Follow. Drag them on from your spellbook, bags, macro window, or
-  pet bar. Shift-drag a button to pick its contents up. Buttons show cooldowns, item counts, and
-  range, just like Blizzard's. A macro's range follows whoever it would cast on, so
+  pet bar. Shift-drag a button to pick its contents up. Buttons show cooldowns, item counts (so you
+  can see when you're down to your last potion), and range, just like Blizzard's. A macro's range follows whoever it would cast on, so
   `[mod:alt,@player]` isn't shown out of range while you hold Alt.
 
 ## Show bars only when you need them
@@ -53,8 +53,9 @@ and attacks when it's hostile. If no page matches, the bar stays hidden.
 
 - Select a bar in Edit Mode and all its pages appear, stacked below it. Drop spells straight onto
   any of them.
-- The spellbook won't open in Edit Mode, so press **Use spellbook** and close Edit Mode: the pages
-  stay open until you press **Done**. `/eb pages <bar>` opens them directly.
+- Or skip Edit Mode: open your spellbook and click **Elastibar pages** on its edge. Your last bar's
+  pages open, the **<** and **>** arrows move between bars, and **Done** closes them.
+  `/eb pages <bar>` opens a bar's pages too.
 - Click a page's label to choose when it shows: target friendly, hostile, or none; alive or dead;
   in combat or out. One click each. For anything else, type the conditions yourself, such as
   `[help,mod:shift]`.
