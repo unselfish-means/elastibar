@@ -16,7 +16,7 @@ files below.
 - [docs/README.md](docs/README.md) is the design: why Elastibar exists, what's out of v1, and the
   per-area specs in `docs/specs/`, with each requirement tagged Decided, Proposed, or Open.
 - [docs/platform.md](docs/platform.md) has the WoW: Forever API facts, combat lockdown rules, and the
-  [development](docs/platform.md#development) workflow: deploying with `scripts/deploy.ps1`, running
+  [development](docs/platform.md#development) workflow: deploying `Elastibar-Test` with `scripts/deploy.ps1`, running
   the `tests/` suites, using the probe, and the GitHub account setup.
 
 ## Releasing
