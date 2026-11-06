@@ -18,6 +18,7 @@ local function refuseInCombat(what)
 end
 
 local function show(record, specInfo)
+    ns.BarStore.EnsurePages(record)
     local bar = ns.Bar.Acquire(record)
     bar:Apply(specInfo or ns.SpecTrees.Get())
     live[record.id] = bar
@@ -59,6 +60,7 @@ function Bars.Delete(record)
     local bar = live[record.id]
     if bar then
         if ns.EditMode then ns.EditMode.Detach(bar) end
+        if ns.PageStack.IsOpen(bar) then ns.PageStack.Close(bar) end
         bar:Release()
         live[record.id] = nil
     end
@@ -99,6 +101,48 @@ function Bars.ReportVisibility(record)
     ns.Print("  right now: %s", tostring(SecureCmdOptionParse(translated) or "no match (hidden)"))
 end
 
+-- Pages ----------------------------------------------------------------------
+-- Each change reloads the bar's pages and hands the game the new page rule.
+
+local function pagesChanged(record)
+    local bar = live[record.id]
+    if not bar then return end
+    bar:ApplyLayout()
+    local _, problems = bar:ApplyPages(ns.SpecTrees.Get())
+    if ns.PageStack then ns.PageStack.Refresh(bar) end
+    return problems
+end
+
+-- Returns the new page's index.
+function Bars.AddPage(record)
+    if refuseInCombat("change pages") then return end
+    local index = ns.BarStore.AddPage(record)
+    pagesChanged(record)
+    return index
+end
+
+function Bars.DeletePage(record, index)
+    if refuseInCombat("change pages") then return false end
+    if not ns.BarStore.DeletePage(record, index) then return false end
+    pagesChanged(record)
+    return true
+end
+
+-- Returns the page's new index.
+function Bars.MovePage(record, index, delta)
+    if refuseInCombat("change pages") then return index end
+    local moved = ns.BarStore.MovePage(record, index, delta)
+    if moved ~= index then pagesChanged(record) end
+    return moved
+end
+
+-- Sets a page's condition. Returns true if it was set, and any spec name problems.
+function Bars.SetPageCondition(record, index, condition)
+    if refuseInCombat("change pages") then return false end
+    record.pages[index].condition = condition
+    return true, pagesChanged(record) or {}
+end
+
 -- Talent and spec changes can change what spec names translate to. They can't happen
 -- in combat, but queue anyway in case an event arrives during it.
 local function retranslateAll()
@@ -107,6 +151,8 @@ local function retranslateAll()
         for _, bar in pairs(live) do
             local _, problems = bar:ApplyVisibility(specInfo)
             for _, problem in ipairs(problems) do ns.Print("'%s': |cffff8800%s|r", bar.record.name, problem) end
+            _, problems = bar:ApplyPages(specInfo)
+            for _, problem in ipairs(problems) do ns.Print("'%s' pages: |cffff8800%s|r", bar.record.name, problem) end
         end
     end)
 end
@@ -120,7 +166,8 @@ for _, event in ipairs({ "SPELL_UPDATE_COOLDOWN", "BAG_UPDATE_COOLDOWN", "SPELL_
     "BAG_UPDATE_DELAYED", "PLAYER_TARGET_CHANGED", "ACTIONBAR_UPDATE_COOLDOWN",
     "CURRENT_SPELL_CAST_CHANGED", "START_AUTOREPEAT_SPELL", "STOP_AUTOREPEAT_SPELL",
     "PET_BAR_UPDATE", "PET_BAR_UPDATE_COOLDOWN", "PET_BAR_UPDATE_USABLE", "UNIT_PET", "PET_UI_UPDATE",
-    "COMPANION_UPDATE", "PET_JOURNAL_LIST_UPDATE", "TOYS_UPDATED" }) do
+    "COMPANION_UPDATE", "PET_JOURNAL_LIST_UPDATE", "TOYS_UPDATED",
+    "PLAYER_REGEN_ENABLED" }) do -- cooldowns read as secret in combat show properly once it ends
     ns.On(event, function()
         for _, bar in pairs(live) do bar:UpdateButtons() end
     end)
@@ -131,9 +178,7 @@ ns.On("UPDATE_MACROS", function()
     if not loaded then return end
     ns.RunOutOfCombat("bars-macros", function()
         for _, bar in pairs(live) do
-            for _, button in pairs(bar.buttons) do
-                if button.widget:IsShown() then button:SetContent(button.content) end
-            end
+            bar:EachButton(function(button) button:SetContent(button.content) end)
         end
     end)
 end)
