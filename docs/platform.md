@@ -108,7 +108,7 @@ message. Internal updates, such as re-translating a rule, are queued until comba
 ## Development
 
 - **Deploy**: `scripts/deploy.ps1` links every addon folder (a folder containing a matching `.toc`)
-  into the beta client's `Interface\AddOns`. Edits are live after `/reload`.
+  into the test client's `Interface\AddOns` (`_forever_`). Edits are live after `/reload`.
 - **Tests**: pure-Lua logic has standalone tests. Run them from the repo root with Lua 5.1 (the
   game's version) or Lua 5.4, which also passes them (`winget install DEVCOM.Lua` installs 5.4):
 

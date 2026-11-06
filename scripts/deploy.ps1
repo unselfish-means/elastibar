@@ -2,7 +2,7 @@
 # the test client's AddOns folder as a junction, so edits are live after /reload.
 # Safe to re-run: existing junctions are left alone; a real folder in the way is reported, not replaced.
 param(
-    [string]$AddOnsDir = "F:\Blizzard\World of Warcraft\_classic_beta_\Interface\AddOns"
+    [string]$AddOnsDir = "F:\Blizzard\World of Warcraft\_forever_\Interface\AddOns"
 )
 
 $ErrorActionPreference = "Stop"
