@@ -38,15 +38,24 @@ function Button.Create(parent, onContentChanged, accepts)
     sequence = sequence + 1
     local name = "ElastibarButton" .. sequence
     local widget = CreateFrame("CheckButton", name, parent, "ActionButtonTemplate, SecureActionButtonTemplate")
-    if widget.TextOverlayContainer then widget.TextOverlayContainer:SetFrameLevel(widget:GetFrameLevel() + 1) end
+    local overlay = widget.TextOverlayContainer
+    if overlay then overlay:SetFrameLevel(widget:GetFrameLevel() + 1) end
     widget.action = 10000 -- keep ActionButtonTemplate code away from real action slots
+
+    -- The template may keep its texts on TextOverlayContainer rather than the button.
+    local count = _G[name .. "Count"] or widget.Count or (overlay and overlay.Count)
+    if not count then
+        count = (overlay or widget):CreateFontString(nil, "OVERLAY", "NumberFontNormal")
+        count:SetPoint("BOTTOMRIGHT", widget, "BOTTOMRIGHT", -2, 2)
+        count:SetJustifyH("RIGHT")
+    end
 
     local self = setmetatable({
         widget = widget,
         icon = _G[name .. "Icon"] or widget.icon,
         cooldown = _G[name .. "Cooldown"] or widget.cooldown,
-        count = _G[name .. "Count"] or widget.Count,
-        hotkey = _G[name .. "HotKey"] or widget.HotKey,
+        count = count,
+        hotkey = _G[name .. "HotKey"] or widget.HotKey or (overlay and overlay.HotKey),
         onContentChanged = onContentChanged,
         accepts = accepts,
     }, Button)
@@ -361,12 +370,63 @@ function Button:UpdateIcon()
     self.icon:SetShown(texture ~= nil)
 end
 
+-- The item a button should show the cooldown of: its item, or the item its macro would use.
+function Button:DisplayItem()
+    local c = self.content
+    if not c then return nil end
+    if c.kind == "item" then return c.id end
+    if c.kind == "macro" and GetMacroItem then
+        local index = GetMacroIndexByName(c.name)
+        local link = index and index > 0 and select(2, GetMacroItem(index))
+        return link and tonumber(link:match("item:(%d+)")) or nil
+    end
+end
+
 -- In combat, cooldown numbers are "secret": addon code can't pass them to SetCooldown.
 -- Spells use a duration object instead, which the cooldown frame accepts as-is.
 local itemSecretLogged, petSecretLogged = false, false
 
+local function isSecret(...)
+    if not issecretvalue then return false end
+    for i = 1, select("#", ...) do
+        if issecretvalue((select(i, ...))) then return true end
+    end
+    return false
+end
+
+-- Items have no duration API. Secret numbers still go into a duration object; failing that,
+-- the item's use spell usually shares its cooldown. Logs once which way worked.
+local function setItemCooldown(cooldown, itemID)
+    local start, duration, enable = C_Item.GetItemCooldown(itemID)
+    if isSecret(start, duration, enable) then
+        local how = "none"
+        if C_DurationUtil and C_DurationUtil.CreateDuration and pcall(function()
+            local object = C_DurationUtil.CreateDuration()
+            object:SetTimeFromStart(start, duration)
+            cooldown:SetCooldownFromDurationObject(object)
+        end) then
+            how = "duration object"
+        else
+            local spellID = C_Item.GetItemSpell and select(2, C_Item.GetItemSpell(itemID))
+            local object = spellID and C_Spell.GetSpellCooldownDuration(spellID)
+            if object then
+                cooldown:SetCooldownFromDurationObject(object)
+                how = "item spell"
+            end
+        end
+        if not itemSecretLogged then
+            itemSecretLogged = true
+            ns.Log("item cooldown values are secret; shown with: " .. how)
+        end
+    elseif enable and enable ~= 0 and duration and duration > 0 then
+        cooldown:SetCooldown(start, duration)
+    else
+        cooldown:Clear()
+    end
+end
+
 function Button:UpdateCooldown()
-    local c, spellID = self.content, self:DisplaySpell()
+    local c, spellID, itemID = self.content, self:DisplaySpell(), self:DisplayItem()
     if c and c.kind == "petaction" then
         local start, duration, enable = GetPetActionCooldown(c.slot)
         if issecretvalue and issecretvalue(start) then
@@ -390,17 +450,11 @@ function Button:UpdateCooldown()
         else
             self.cooldown:Clear()
         end
-    elseif c and c.kind == "item" then
-        local start, duration, enable = C_Item.GetItemCooldown(c.id)
-        if issecretvalue and issecretvalue(start) then
-            -- No item duration API on this client; record what we see and leave the swipe as is.
-            if not itemSecretLogged then
-                itemSecretLogged = true
-                ns.Log("item cooldown values are secret in combat; swipe left unchanged")
-            end
-            return
-        end
-        if enable then
+    elseif itemID then
+        setItemCooldown(self.cooldown, itemID)
+    elseif c and c.kind == "battlepet" and C_PetJournal.GetPetCooldownByGUID then
+        local start, duration, enable = C_PetJournal.GetPetCooldownByGUID(c.guid)
+        if not isSecret(start, duration, enable) and enable and enable ~= 0 and duration and duration > 0 then
             self.cooldown:SetCooldown(start, duration)
         else
             self.cooldown:Clear()
@@ -410,31 +464,38 @@ function Button:UpdateCooldown()
     end
 end
 
+-- Like Blizzard's bars: stackable and consumable items always show how many you have, even
+-- 1 or 0; other items only when you carry more than one. Macros show the item they'd use.
+-- Toys aren't in your bags, so they have no count.
 function Button:UpdateCount()
-    local c = self.content
-    local text = ""
-    if c and c.kind == "item" then
-        local n = C_Item.GetItemCount(c.id)
-        if n and n > 1 then text = tostring(n) end
+    local c, itemID, text = self.content, self:DisplayItem(), ""
+    if itemID and not (c.kind == "item" and isToy(itemID)) then
+        local n = C_Item.GetItemCount(itemID, false, true) or 0 -- includeUses: items with charges
+        local stacks = C_Item.GetItemMaxStackSizeByID and (C_Item.GetItemMaxStackSizeByID(itemID) or 1) > 1
+        if stacks or C_Item.IsConsumableItem(itemID) or n > 1 then
+            text = n > 9999 and "*" or tostring(n)
+        end
     end
-    if self.count then self.count:SetText(text) end
+    self.count:SetText(text)
 end
 
 -- Dim unusable buttons and tint out-of-range ones red.
 function Button:UpdateUsable()
     local c, usable, inRange = self.content, true, nil
-    local spellID = self:DisplaySpell()
+    local spellID, itemID = self:DisplaySpell(), self:DisplayItem()
+    -- Range is checked against whoever it would land on, as Blizzard's bars do.
+    local unit = c and c.kind == "macro" and macroUnit(c.name) or "target"
     if spellID then
         usable = C_Spell.IsSpellUsable(spellID)
-        -- Range is checked against whoever the spell would land on, as Blizzard's bars do.
-        local unit = c.kind == "macro" and macroUnit(c.name) or "target"
         if unit ~= "player" then inRange = C_Spell.IsSpellInRange(spellID, unit) end
     elseif c and c.kind == "item" and isToy(c.id) then
-        usable = not C_ToyBox.IsToyUsable or C_ToyBox.IsToyUsable(c.id) -- toys aren't in bags
-    elseif c and c.kind == "item" then
-        usable = C_Item.IsUsableItem(c.id)
+        usable = true -- a toy you own never runs out
+    elseif itemID then
+        -- Items, and macros that use one, are greyed only when you have none, so items without
+        -- a use (or not usable right now) still look normal. includeUses: items with charges.
+        usable = (C_Item.GetItemCount(itemID, false, true) or 0) > 0
         -- IsItemInRange is protected in combat on this client (calling it is a blocked action).
-        if not InCombatLockdown() then inRange = C_Item.IsItemInRange(c.id, "target") end
+        if unit ~= "player" and not InCombatLockdown() then inRange = C_Item.IsItemInRange(itemID, unit) end
     elseif c and c.kind == "petaction" then
         local info = petInfo(c.slot)
         usable = info ~= nil and GetPetActionSlotUsable(c.slot)

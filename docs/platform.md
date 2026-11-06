@@ -35,8 +35,12 @@ toc `16001`):
   - `C_Spell.GetSpellCooldownDuration(spellID)` returns a duration object, which goes to
     `Cooldown:SetCooldownFromDurationObject`. `C_Spell.GetSpellChargeDuration` and
     `C_ActionBar.Get*Duration` also exist.
-  - There's **no item equivalent** (`C_Item` has no `*Duration` functions). Whether item cooldowns are
-    secret in combat is being checked; the spike logs it.
+  - There's **no item equivalent** (`C_Item` has no `*Duration` functions). If item cooldowns read
+    as secret, Elastibar puts them in a `C_DurationUtil.CreateDuration` object, falling back to the
+    item's use spell (`C_Item.GetItemSpell`), and logs once which worked ("item cooldown values are
+    secret; shown with: ..."). Every button redraws when combat ends. Item cooldowns were confirmed
+    working in game (2026-10-17), and that log line hadn't appeared, so the secret path is still
+    untested.
   - `issecretvalue`, `C_Secrets.Should*BeSecret`, and `C_DurationUtil.CreateDuration` exist.
 - **`C_Item.IsItemInRange` is protected in combat.** Calling it is a blocked action ("Interface action
   failed because of an AddOn"), so item range can only be checked out of combat.
@@ -103,10 +107,15 @@ message. Internal updates, such as re-translating a rule, are queued until comba
 
 ## Development
 
-- **Deploy**: `scripts/deploy.ps1` links every addon folder (a folder containing a matching `.toc`)
-  into the beta client's `Interface\AddOns`. Edits are live after `/reload`.
-- **Tests**: pure-Lua logic has standalone tests. Run them with any Lua 5.1-compatible interpreter
-  from the repo root:
+- **Deploy**: `scripts/deploy.ps1` pushes a test build: it copies `Elastibar` into the test client's
+  `Interface\AddOns` (`_forever_`) as `Elastibar-Test`, with the `.toc` renamed and `-Test` on the title.
+  A CurseForge install keeps the plain `Elastibar` folder, so the release and the test build can both be
+  installed. Enable one at a time in the game's AddOns list: they share slash commands, saved-variable
+  globals, and frame names. The game names saved variables after the folder, so the test build's data
+  is in `Elastibar-Test.lua`. Re-run the script to test new edits, then `/reload` (restart for a new
+  file). Never hardcode `Interface\AddOns\Elastibar\`; use the addon name from `...`.
+- **Tests**: pure-Lua logic has standalone tests. Run them from the repo root with Lua 5.1 (the
+  game's version) or Lua 5.4, which also passes them (`winget install DEVCOM.Lua` installs 5.4):
 
   ```
   lua tests/conditionals_test.lua
@@ -114,10 +123,12 @@ message. Internal updates, such as re-translating a rule, are queued until comba
   lua tests/grid_test.lua
   lua tests/ruleediting_test.lua
   lua tests/macrotooltips_test.lua
+  lua tests/pages_test.lua
   ```
 
-- **Probe**: `ElastibarProbe` records APIs, templates, conditionals, and talent data per build in
-  `WTF\Account\<account>\SavedVariables\ElastibarProbe.lua`. Re-run it after beta patches and diff
+- **Probe**: `ElastibarProbe` records APIs, templates, conditionals, and talent data per build. It
+  isn't deployed by default; `scripts/deploy.ps1 -Addons ElastibarProbe` pushes it, and it writes to
+  `WTF\Account\<account>\SavedVariables\ElastibarProbe-Test.lua`. Re-run it after beta patches and diff
   the results.
 - **GitHub account**: the repo is `unselfish-means/elastibar`. Git pushes as unselfish-means through
   a repo-local credential helper in `.git/config`, so the active `gh` account doesn't matter for git.

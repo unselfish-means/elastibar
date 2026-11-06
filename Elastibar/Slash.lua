@@ -5,6 +5,7 @@
 --   /eb delete <bar>               delete a bar (no confirmation)
 --   /eb rename <bar> <name>        rename a bar
 --   /eb vis <bar> [rule]           set or show a bar's visibility rule
+--   /eb pages <bar>                open or close a bar's pages for editing outside Edit Mode
 --   /eb grid [px]                  show or set the snapping grid size
 --   /eb taintlog [off]             turn the taintLog CVar on (re-applied each login) or off
 --
@@ -58,6 +59,14 @@ function commands.rename(rest)
     if record then ns.Bars.Rename(record, name) end
 end
 
+-- Opens a bar's pages outside Edit Mode, where the spellbook can be opened; again closes them.
+function commands.pages(rest)
+    local record = findBar(rest)
+    local bar = record and ns.Bars.Get(record.id)
+    if not bar then return end
+    if ns.PageStack.IsOpen(bar) then ns.PageStack.Close(bar) else ns.PageStack.Open(bar) end
+end
+
 function commands.vis(rest)
     local token, rule = splitFirst(rest)
     local record = findBar(token)
@@ -99,6 +108,6 @@ SlashCmdList.ELASTIBAR = function(msg)
     if handler then
         handler(rest)
     else
-        ns.Print("/eb list, /eb new [account] [name], /eb delete <bar>, /eb rename <bar> <name>, /eb vis <bar> [rule], /eb grid [px]")
+        ns.Print("/eb list, /eb new [account] [name], /eb delete <bar>, /eb rename <bar> <name>, /eb pages <bar>, /eb vis <bar> [rule], /eb grid [px]")
     end
 end

@@ -77,10 +77,10 @@ check("migrated size", m.cols .. "x" .. m.rows, "2x2")
 check("migrated scale", m.scale, 1.2)
 check("migrated visibility", m.visibility, "[combat] show; hide")
 check("migrated position", m.positions["My Layout"][3], 10)
-check("migrated button 1,1", m.buttons["1,1"].id, 5149)
-check("migrated button 1,2", m.buttons["1,2"].name, "- Explosives")
-check("migrated empty 2,1", m.buttons["2,1"], nil)
-check("migrated button 2,2", m.buttons["2,2"].id, 6948)
+check("migrated button 1,1", m.pages[1].buttons["1,1"].id, 5149)
+check("migrated button 1,2", m.pages[1].buttons["1,2"].name, "- Explosives")
+check("migrated empty 2,1", m.pages[1].buttons["2,1"], nil)
+check("migrated button 2,2", m.pages[1].buttons["2,2"].id, 6948)
 check("spike data removed", mchar.spike, nil)
 check("migration runs once", S.MigrateSpike(mdb, mchar), nil)
 
@@ -99,6 +99,31 @@ check("account refuses character macro", S.AccountAllows({ kind = "macro", name 
 check("account refuses macro of unknown index", S.AccountAllows({ kind = "macro", name = "x" }, nil, 120), false)
 check("account refuses spell", S.AccountAllows({ kind = "spell", id = 5149 }), false)
 check("account refuses pet action", S.AccountAllows({ kind = "petaction", slot = 1 }), false)
+
+-- Pages
+local pdb, pchar = {}, {}
+local p = S.Create("character", "Target", pdb, pchar)
+check("new bar has one page", #p.pages, 1)
+check("first page always shows", p.pages[1].condition, "")
+check("add page", S.AddPage(p), 2)
+p.pages[2].condition = "[harm]"
+p.pages[2].buttons["1,1"] = { kind = "spell", id = 589 }
+check("move down", S.MovePage(p, 1, 1), 2)
+check("moved page", p.pages[1].condition, "[harm]")
+check("moved buttons", p.pages[1].buttons["1,1"].id, 589)
+check("can't move past the end", S.MovePage(p, 2, 1), 2)
+check("delete page", S.DeletePage(p, 1), true)
+check("one page left", #p.pages, 1)
+check("can't delete the last page", S.DeletePage(p, 1), false)
+
+-- Bars saved before pages keep their buttons on page 1
+local old = { id = "c9", name = "Old", buttons = { ["1,1"] = { kind = "item", id = 6948 } } }
+S.EnsurePages(old)
+check("old buttons on page 1", old.pages[1].buttons["1,1"].id, 6948)
+check("old page always shows", old.pages[1].condition, "")
+check("old buttons moved", old.buttons, nil)
+S.EnsurePages(old)
+check("ensure pages runs once", #old.pages, 1)
 
 print(("%d checks, %d failed"):format(count, failures))
 if failures > 0 then os.exit(1) end

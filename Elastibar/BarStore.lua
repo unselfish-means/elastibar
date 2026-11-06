@@ -6,9 +6,11 @@
 --
 --   { id, name, scope = "account" | "character", cols, rows, scale, layer, visibility,
 --     positions = { [editModeLayoutName] = { point, relativePoint, x, y } },
---     buttons = { ["row,col"] = content } }
+--     pages = { { condition = "[help,nodead]", buttons = { ["row,col"] = content } }, ... } }
 --
 -- Buttons are keyed by row and column, so resizing a bar later keeps their contents.
+-- Every page shares the bar's size (Pages.lua has what a condition is). Bars saved before
+-- pages existed keep their buttons in record.buttons; EnsurePages moves them to page 1.
 
 local _, ns = ...
 ns = ns or {}
@@ -92,7 +94,7 @@ function BarStore.Create(scope, name, db, charDB)
     local root = storeFor(scope, db, charDB)
     local id = PREFIX[scope] .. root.nextBarId
     root.nextBarId = root.nextBarId + 1
-    local record = { id = id, name = name, scope = scope, positions = {}, buttons = {} }
+    local record = { id = id, name = name, scope = scope, positions = {}, pages = { { condition = "", buttons = {} } } }
     for key, value in pairs(BarStore.DEFAULTS) do record[key] = value end
     root.bars[id] = record
     return record
@@ -140,6 +142,35 @@ function BarStore.Find(token, db, charDB)
     end
 end
 
+-- Gives a bar saved before pages existed one always-shown page holding its buttons.
+function BarStore.EnsurePages(record)
+    if record.pages then return end
+    record.pages = { { condition = "", buttons = record.buttons or {} } }
+    record.buttons = nil
+end
+
+-- Adds an empty page at the end. Returns its index.
+function BarStore.AddPage(record)
+    record.pages[#record.pages + 1] = { condition = "", buttons = {} }
+    return #record.pages
+end
+
+-- Deletes a page and its buttons. A bar always keeps at least one page.
+function BarStore.DeletePage(record, index)
+    if #record.pages <= 1 or not record.pages[index] then return false end
+    table.remove(record.pages, index)
+    return true
+end
+
+-- Swaps a page with its neighbour (delta -1 moves it up, +1 down). Returns the new index.
+function BarStore.MovePage(record, index, delta)
+    local target = index + delta
+    local pages = record.pages
+    if not pages[index] or not pages[target] then return index end
+    pages[index], pages[target] = pages[target], pages[index]
+    return target
+end
+
 -- One-time move of the 2x2 spike bar (ElastibarCharDB.spike) into a character bar.
 function BarStore.MigrateSpike(db, charDB)
     local spike = charDB.spike
@@ -151,7 +182,7 @@ function BarStore.MigrateSpike(db, charDB)
     for layout, pos in pairs(spike.positions or {}) do record.positions[layout] = pos end
     for i = 1, 4 do
         local content = spike.buttons and spike.buttons[i]
-        if content then record.buttons[BarStore.ButtonKey(math.floor((i - 1) / 2) + 1, (i - 1) % 2 + 1)] = content end
+        if content then record.pages[1].buttons[BarStore.ButtonKey(math.floor((i - 1) / 2) + 1, (i - 1) % 2 + 1)] = content end
     end
     charDB.spike = nil
     return record
