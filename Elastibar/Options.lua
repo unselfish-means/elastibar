@@ -2,7 +2,7 @@
 -- One page: general settings, then the bars this character sees. Per-bar settings stay in
 -- Edit Mode's bar settings panel (docs/specs/options-and-minimap.md).
 
-local _, ns = ...
+local addonName, ns = ...
 
 local Options = {}
 ns.Options = Options
@@ -168,7 +168,7 @@ local function build()
     local version = page:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
     version:SetPoint("LEFT", title, "RIGHT", 8, 0)
     local getMetadata = C_AddOns and C_AddOns.GetAddOnMetadata or GetAddOnMetadata
-    version:SetText(getMetadata and getMetadata("Elastibar", "Version") or "")
+    version:SetText(getMetadata and getMetadata(addonName, "Version") or "")
 
     local general = heading("General", title, -18)
     local tooltips = label("Show macro tooltip text", general, -18)
