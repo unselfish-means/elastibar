@@ -25,4 +25,5 @@ SpellbookTab.lua
 MacroTooltipEditor.lua
 EditMode.lua
 Bars.lua
+Options.lua
 Slash.lua

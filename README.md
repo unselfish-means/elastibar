@@ -74,12 +74,23 @@ box that opens beside Blizzard's macro window (`/macro`).
 - An account macro's tooltip is shared by all your characters, and a character macro's belongs to
   that character. Your text is saved as you type.
 
+## Options
+
+Open **Options › AddOns › Elastibar**, or type `/eb`. One page holds:
+
+- **Macro tooltip text**: show it always, out of combat only, or never, and put it above or
+  below the game's tooltip.
+- **Snapping grid** size for moving bars in Edit Mode.
+- **Your bars**: every bar this character sees, with buttons to edit (opens Edit Mode with that
+  bar selected) or delete it, and to create a new character or account bar.
+
 ## Commands
 
 `/eb` and `/elastibar` do the same thing.
 
 | Command | What it does |
 |---|---|
+| `/eb` | Open the options |
 | `/eb list` | List your bars with their numbers |
 | `/eb new [account] [name]` | Create a character bar, or an account bar |
 | `/eb rename <bar> <name>` | Rename a bar |

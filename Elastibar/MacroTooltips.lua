@@ -50,6 +50,15 @@ function MacroTooltips.SetPosition(position)
     ns.db.macroTooltipPosition = position
 end
 
+-- When custom text is shown: "always" (the default), "nocombat", or "never". The game's own
+-- tooltip is always shown; this only adds or leaves out Elastibar's text.
+MacroTooltips.SHOWN_MODES = { { "always", "Always" }, { "nocombat", "Out of combat only" }, { "never", "Never" } }
+
+function MacroTooltips.Shown()
+    local mode = ns.db and ns.db.macroTooltipShown or "always"
+    return mode == "always" or (mode == "nocombat" and not InCombatLockdown())
+end
+
 local R, G, B = 0.61, 1, 0.69 -- the custom text and its separator bar
 
 -- A 1px bar in the custom text's color, drawn across a blank line. Hidden again, and the line
@@ -100,7 +109,7 @@ end
 -- A tooltip can only grow at the bottom, so "above" reads the lines back, clears the tooltip,
 -- and adds them again after the text. If they can't be read, the text goes below.
 function MacroTooltips.AddTo(tooltip, name)
-    local text = MacroTooltips.Get(name)
+    local text = MacroTooltips.Shown() and MacroTooltips.Get(name)
     if not text then return end
     local lines = MacroTooltips.Position() == "above" and snapshot(tooltip)
     if not lines then
@@ -125,9 +134,13 @@ function MacroTooltips.AddTo(tooltip, name)
         end
     end
     -- The first line always gets the title font: give it back to the game's own title.
+    -- Changing a font also resets its color, so both colors are set again afterwards.
     local tooltipName = tooltip:GetName()
-    _G[tooltipName .. "TextLeft1"]:SetFontObject(GameTooltipText)
-    _G[tooltipName .. "TextLeft" .. (gap + 1)]:SetFontObject(GameTooltipHeaderText)
+    local first, title = _G[tooltipName .. "TextLeft1"], _G[tooltipName .. "TextLeft" .. (gap + 1)]
+    first:SetFontObject(GameTooltipText)
+    first:SetTextColor(R, G, B)
+    title:SetFontObject(GameTooltipHeaderText)
+    title:SetTextColor(unpack(lines[1][2]))
     tooltip.ElastibarTitleLine = gap + 1
     tooltip:Show()
     placeSeparator(tooltip, gap)

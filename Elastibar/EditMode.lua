@@ -266,6 +266,14 @@ local function hook()
     end
 end
 
+-- Opens Blizzard's Edit Mode, with one of our bars selected if given (from the options panel).
+function EditMode.Open(bar)
+    if InCombatLockdown() or not EditModeManagerFrame then return end
+    if not EditModeManagerFrame:IsShown() then ShowUIPanel(EditModeManagerFrame) end
+    onEnter() -- in case the Enter callback hasn't run yet
+    if bar and attached[bar] then selectBar(bar) end
+end
+
 -- While something is on the cursor, overlays let the mouse through, so it can be dropped on
 -- the bar's buttons in Edit Mode.
 ns.On("CURSOR_CHANGED", function()
