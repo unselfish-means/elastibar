@@ -76,8 +76,11 @@ box that opens beside Blizzard's macro window (`/macro`).
 
 ## Options
 
-Open **Options › AddOns › Elastibar**, or type `/eb`. One page holds:
+Open **Options › AddOns › Elastibar**, type `/eb`, or right-click Elastibar's minimap icon. One
+page holds:
 
+- **Minimap icon and addon compartment**: show or hide each one. Left-click either to open or
+  close Edit Mode, and right-click for the options. Drag the icon to move it around the minimap.
 - **Macro tooltip text**: show it always, out of combat only, or never, and put it above or
   below the game's tooltip.
 - **Snapping grid** size for moving bars in Edit Mode.

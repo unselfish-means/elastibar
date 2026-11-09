@@ -34,6 +34,16 @@ local function label(text, anchor, y)
     return fs
 end
 
+local function check(text, anchor, y, get, set)
+    local box = CreateFrame("CheckButton", nil, page, "UICheckButtonTemplate")
+    box:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, y)
+    box.Text:SetFontObject("GameFontHighlight")
+    box.Text:SetText(text)
+    box:SetScript("OnClick", function(self) set(self:GetChecked()) end)
+    refreshers[#refreshers + 1] = function() box:SetChecked(get()) end
+    return box
+end
+
 -- A button showing the current choice; clicking opens a menu of choices (or cycles them if
 -- Blizzard's menu isn't available).
 local function choice(anchor, choices, get, set)
@@ -171,7 +181,9 @@ local function build()
     version:SetText(getMetadata and getMetadata(addonName, "Version") or "")
 
     local general = heading("General", title, -18)
-    local tooltips = label("Show macro tooltip text", general, -18)
+    local minimap = check("Show minimap icon", general, -10, ns.Minimap.IsShown, ns.Minimap.SetShown)
+    local compartment = check("Show in addon compartment", minimap, 2, ns.Minimap.InCompartment, ns.Minimap.SetInCompartment)
+    local tooltips = label("Show macro tooltip text", compartment, -12)
     choice(tooltips, ns.MacroTooltips.SHOWN_MODES,
         function() return ns.db.macroTooltipShown or "always" end,
         function(mode) ns.db.macroTooltipShown = mode end)
