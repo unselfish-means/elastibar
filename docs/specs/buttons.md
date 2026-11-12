@@ -56,6 +56,23 @@ Each button holds one spell, item or toy, macro, pet action, mount, or battle pe
   Blizzard's bars: `[mod:alt,@player]` with Alt held is never red, and `@mouseover` checks the
   mouseover.
 
+## Glowing Bars
+
+- **Decided**: Elastibar buttons glow with Glowing Bars (CurseForge project 1754997)
+  (procs, missing buffs, ready cooldowns, and the rest). Each button is registered through its public
+  API, `GlowingBars.RegisterButton(button)`, and the `.toc` lists it in `OptionalDeps` so the API
+  exists when the buttons are made.
+- **Decided**: Buttons are registered with no bar number, so Glowing Bars' per-bar "glow on this bar"
+  switches and bar fading don't apply to them. Elastibar's own "Hide empty slots" sets button alpha,
+  and fading would fight it.
+- What glows: spells, and macros (Glowing Bars reads the macro's spells). Items, toys, mounts, battle
+  pets, and pet actions don't: Glowing Bars only finds items through Blizzard action slots, which
+  Elastibar buttons don't use.
+- **Open**: Glowing Bars re-reads its buttons only on bar events (`ACTIONBAR_SLOT_CHANGED`,
+  `UPDATE_MACROS`, learning a spell) or when the number of buttons changes. Placing something on an
+  Elastibar button fires none of those, so a newly placed spell may not glow until the next one (or a
+  `/reload`). Fixing this needs a refresh call in Glowing Bars' API.
+
 ## Tooltips
 
 - **Decided**: Hovering a spell or item shows its normal game tooltip.
