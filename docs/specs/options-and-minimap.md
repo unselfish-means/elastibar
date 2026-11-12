@@ -31,8 +31,8 @@
     panel opens. **Open Edit Mode** does the same with nothing selected. Neither works in combat.
   - **Delete** is immediate, with no confirmation, as everywhere else.
   - **New character bar** and **New account bar** create a bar with the next free name.
-- **Decided**: The minimap icon and addon compartment checkboxes are added with the icon itself
-  (the next build step), not before.
+- **Decided**: The minimap icon and addon compartment checkboxes are the first two settings
+  under General. Both are on for a new install.
 
 ## Minimap icon
 
@@ -43,7 +43,12 @@
   - Left-click toggles edit mode.
   - Right-click opens the options panel.
   - Dragging moves the icon around the minimap.
-  - The hover tooltip shows the bar count and these hints.
+  - The hover tooltip shows the bar count (character and account) and these hints.
+  - Closing Edit Mode from the icon is refused in combat, as opening it is.
+- **Decided**: The icon is the game's `INV_Misc_Gear_01` (a cog), also used for the compartment
+  entry and the AddOns list (`## IconTexture`).
+- **Decided**: The libraries are embedded in `Elastibar/Libs/`, copied from Reclaim, which already
+  ships them on Forever.
 - **Decided**: The icon can be hidden from the options panel (see the addon compartment below).
 
 ## Addon compartment
