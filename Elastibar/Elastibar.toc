@@ -6,6 +6,7 @@
 ## X-Curse-Project-ID: 1730569
 ## SavedVariables: ElastibarDB
 ## SavedVariablesPerCharacter: ElastibarCharDB
+## OptionalDeps: GlowingBars
 ## IconTexture: Interface\Icons\INV_Misc_Gear_01
 
 Libs\LibStub\LibStub.lua

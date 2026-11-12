@@ -96,6 +96,11 @@ function Button.Create(parent, onContentChanged, accepts)
     end)
     widget:SetScript("OnEnter", function() self:ShowTooltip() end)
     widget:SetScript("OnLeave", function() GameTooltip:Hide() end)
+
+    -- Glowing Bars (an optional dependency, so it loads first) glows registered buttons by
+    -- reading their "type" and "spell" or "macro" attributes. No bar number: it counts them
+    -- as no Action Bar, so its per-bar switches and fading leave them alone.
+    if GlowingBars and GlowingBars.RegisterButton then GlowingBars.RegisterButton(widget) end
     return self
 end
 

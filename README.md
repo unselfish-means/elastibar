@@ -109,3 +109,6 @@ For `<bar>`, use its number from `/eb list` or a one-word bar name.
 - Bars can't be created, changed, or deleted in combat. That's a game rule for action buttons.
 - Deleting a bar is immediate. Its buttons and settings are gone.
 - A macro's tooltip is tied to the macro's name, so renaming the macro leaves the tooltip behind.
+- With Glowing Bars installed, spells and
+  macros on Elastibar buttons glow too. A spell you've just placed may start glowing only after your
+  next action bar change or a `/reload`.
